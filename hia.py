@@ -117,11 +117,7 @@ def get_bhm(country_isocode, age_group, cause, measure):
         raise ValueError('Query returned zero')
             
     return float(bhdf.loc[query]['val'].sum())
-
-# function to query the gemm parameters
-def get_gemm_params(cause, age_group):
-    
-    return gemm_params.loc[cause, age_group]
+        
 
 # function to get the population structure for a given country and age group
 def get_age_group_population(country_isocode, age_group):
@@ -181,7 +177,7 @@ uncertainties = ['lower', 'mid', 'upper']
 #%% HIA
 
 # create a dataframe to store results
-mindex = pd.MultiIndex.from_product([countries_in, age_groups])
+mindex = pd.MultiIndex.from_product([countries_in, age_groups, uncertainties])
 results = pd.DataFrame(index=mindex, columns=causes)
 
 
@@ -200,30 +196,36 @@ for country_isocode in countries_in:
     
         for age_group in age_groups:
             
-            # get GEMM parameters
-            theta, theta_se, alpha, mu, tau = get_gemm_params(cause=cause, age_group=age_group)
-            
             # get baseline death rate
             baseline_deaths = get_bhm(country_isocode=country_isocode,
                     age_group=age_group,
                     cause=cause,
                     measure='Deaths')
             
-            
-            
-            mortality_rate = gemm_deaths(pm=pm_popweighted, 
-                        alpha=alpha, mu=mu, tau=tau, theta=theta, 
-                        baseline_deaths=baseline_deaths)
-            
             age_group_pop = get_age_group_population(country_isocode=country_isocode,
                                                      age_group=age_group)
             
+            # get GEMM parameters
+            theta, theta_se, alpha, mu, tau = gemm_params.loc[cause, age_group]
             
-            # print(age_group, mortality_rate * age_group_pop / 100000)
-            deaths = mortality_rate * age_group_pop / 100000
-        
-            
-            results.loc[idx[country_isocode, age_group], cause] = deaths
+            for uncert in uncertainties:
+                
+                # modify theta if calculating an uncertainty bound
+                if uncert == 'lower':
+                    theta_uncert = theta - theta_se
+                elif uncert == 'mid':
+                    theta_uncert = theta
+                elif uncert == 'upper':
+                    theta_uncert = theta + theta_se
+                
+                mortality_rate = gemm_deaths(pm=pm_popweighted, 
+                            alpha=alpha, mu=mu, tau=tau, theta=theta_uncert, 
+                            baseline_deaths=baseline_deaths)
+    
+                # print(age_group, mortality_rate * age_group_pop / 100000)
+                deaths = mortality_rate * age_group_pop / 100000
+                
+                results.loc[idx[country_isocode, age_group, uncert], cause] = deaths
             
 # drop rows of results with no results
 results = results.dropna(how='all')
