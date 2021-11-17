@@ -23,7 +23,7 @@ countries_lookup = pd.read_csv(dpath+'population_count/regridded/country_lookup.
                                index_col='ISOCODE')
 
 # load baseline health data
-bhdf = pd.read_csv(dpath+'baseline_health_data/raw/IHME-GBD_2019_DATA-31c9bf16-1.csv')
+bhdf = pd.read_csv(dpath+'baseline_health_data/raw/IHME-GBD_2019_DATA-31c9bf16-1.csv', index_col=['location_id', 'age_name', 'cause_name', 'measure_name']).sort_index()
 
 # load PM data
 # pm25 = xr.open_dataset('/nfs/a340/eebjs/acrobear/cams/annual_means/cams_surface_pm25_2019.nc')['pm2p5'] *1e9 #to convert kg-> ug
@@ -106,17 +106,13 @@ def get_bhm(country_isocode, age_group, cause, measure):
         
     age_group = age_group.replace('-', ' to ')
     age_group = age_group.replace('+', ' plus')
-               
-    query = (bhdf['location_id'] == who_country_id) &\
-            (bhdf['age_name'] == age_group) &\
-            (bhdf['cause_name'].isin(gbd_cause)) &\
-            (bhdf['measure_name'] == measure)
             
-    result = float(bhdf.loc[query]['val'].sum())
+    result = float(bhdf.loc[idx[who_country_id, age_group,
+                                gbd_cause, measure]]['val'].sum())
     if result == 0:
         raise ValueError('Query returned zero')
             
-    return float(bhdf.loc[query]['val'].sum())
+    return result
         
 
 # function to get the population structure for a given country and age group
@@ -129,9 +125,6 @@ def get_age_group_population(country_isocode, age_group):
     
     # get the data for the country
     cdata = popstruct.loc[who_country_id]
-    
-    
-    
     total_population = float(cdata.loc[
         (cdata['age_group_name'] == 'All Ages') &\
         (cdata['sex_name'] == 'both')
@@ -179,6 +172,7 @@ uncertainties = ['lower', 'mid', 'upper']
 # create a dataframe to store results
 mindex = pd.MultiIndex.from_product([countries_in, age_groups, uncertainties])
 results = pd.DataFrame(index=mindex, columns=causes)
+results = results.sort_index() # sort for faster indexing
 
 
 cause = causes[0]
