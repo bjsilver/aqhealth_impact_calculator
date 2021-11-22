@@ -14,51 +14,30 @@ complex regridding
 
 import xarray as xr
 import pandas as pd
-import numpy as np
 from tqdm import tqdm
 from scipy import stats
 
-# load global target grid:
-gridto = xr.open_dataset('/nfs/see-fs-02_users/eebjs/acrobear/scripts/hia/grids/common_grid.nc')
-
-# path to directory containing gpw netcdf and mapping csv
-pop_path = '/nfs/a340/eebjs/hiadata/population_count/raw/'
-fname = 'gpw_v4_population_count_rev11_2pt5_min.nc'
-
-# the netcdf is badly formatted
-popds = xr.open_dataset(pop_path+fname)
-
-# load and format a lookup table that maps to the raster coordinate in the netcd
-lookup = pd.read_csv(pop_path+'gpw_v4_netcdf_contents_rev11.csv')
-lookup = lookup.where(lookup.file_name=='gpw_v4_population_count_rev11').dropna()
-lookup.index = lookup.index + 1
-
-# load countries lookup:
-countries = pd.read_csv(pop_path+'gpw_v4_national_identifier_grid_rev11_lookup.txt', error_bad_lines=False, sep='\t')
-countries = countries[['Value', 'ISOCODE']]
 
 
 #%% reformat
-ds = xr.Dataset(
-                  coords=popds.drop_dims('raster').coords,
-                  attrs=popds.drop_dims('raster').attrs)
-
-for rast in popds.raster.values:
+def reformat_GPW_ds(popds, lookup):
     
-    da = popds['Population Count, v4.11 (2000, 2005, 2010, 2015, 2020): 2.5 arc-minutes'][rast-1]
-    da_name = lookup.loc[rast, 'raster_name']
-    ds[da_name] = da.drop('raster')
+    ds = xr.Dataset(
+                      coords=popds.drop_dims('raster').coords,
+                      attrs=popds.drop_dims('raster').attrs)
     
-cpc = pd.DataFrame([countries['Value'], countries['ISOCODE']]).T
-cpc = cpc.set_index('Value')
-cpc.to_csv('/nfs/a340/eebjs/hiadata/population_count/regridded/country_lookup.csv')
-
+    for rast in popds.raster.values:
+        
+        da = popds['Population Count, v4.11 (2000, 2005, 2010, 2015, 2020): 2.5 arc-minutes'][rast-1]
+        da_name = lookup.loc[rast, 'raster_name']
+        ds[da_name] = da.drop('raster')
+        
+    return ds
 
 #%% coarsen to target grid function
 
-def coarsen_to_gridto(var, gridto=gridto):
+def coarsen_to_gridto(da, gridto):
 
-    da = ds[var]
     # replace nan with zero
     # da = da.fillna(0)
     
@@ -88,50 +67,87 @@ def coarsen_to_gridto(var, gridto=gridto):
 
 
         
-#%% coarsen the population count dataset
 
-counts = {}
-# for year in ['2000', '2005', '2010', '2015', '2020']:
-for year in ['2020']:
-    da = coarsen_to_gridto(var='Population Count, v4.11 ('+year+')')
-    counts[year] = da
-    
-master_ds = xr.Dataset(counts)
-master_ds.to_netcdf('/nfs/a340/eebjs/hiadata/population_count/regridded/population_count.nc')
 
 #%% coarsen the country mask
-var = 'National Identifier Grid, v4.11 (2010): National Identifier Grid'
-da = ds[var]
-# replace nan with zero
-# da = da.fillna(0)
 
-# create a dataarray to fill
-countries = xr.DataArray(coords=gridto.drop(['lat_b', 'lon_b']).coords)
-for y in tqdm(range(gridto.dims['latitude'])):
+def coarsen_country_grid(da, gridto):
+
+    # create a dataarray to fill
+    countries = xr.DataArray(coords=gridto.drop(['lat_b', 'lon_b']).coords)
+    for y in tqdm(range(gridto.dims['latitude'])):
+    
+        
+        # get lat coordinate (centre, lower and upper)
+        clat = float(gridto.coords['latitude'][y])
+        llat = float(gridto.coords['lat_b'][y])
+        ulat = float(gridto.coords['lat_b'][y+1])
+        
+        
+        
+        for x in range(gridto.dims['longitude']):
+            
+            # get lon coordinate (centre, lower and upper)
+            clon = float(gridto.coords['longitude'][x])
+            llon = float(gridto.coords['lon_b'][x])
+            ulon = float(gridto.coords['lon_b'][x+1])
+            
+            # slice the country grid for box
+            cda = da.loc[{'longitude':slice(llon, ulon), 'latitude':slice(llat, ulat)}]
+            # find the mode
+            countries.loc[{'longitude':clon, 'latitude':clat}] = float(stats.mode(cda.values.flatten())[0])
+        
+        
+        
+    return countries.to_dataset(name='mask')        
+
+
+
+#%% main
+
+def regrid_population_count(popdata_dpath, popdata_fname, popdata_contents_fname,
+                            popdata_lookup_fname, population_year):
+    
+    
+    ### LOAD DATA
+    
+    # load global target grid:
+    gridto = xr.open_dataset('./grids/common_grid.nc')
+    
+    # open the netcdf contents description csv
+    contents = pd.read_csv(popdata_dpath+popdata_contents_fname)
+    # keep the important rows
+    contents = contents.where(contents.file_name=='gpw_v4_population_count_rev11').dropna()
+    # increment index
+    contents.index = contents.index + 1
+    
+    # open GPW population grid
+    popds = xr.open_dataset(popdata_dpath+popdata_fname)
+    # reformat GPW ds
+    ds = reformat_GPW_ds(popds, lookup=contents)
 
     
-    # get lat coordinate (centre, lower and upper)
-    clat = float(gridto.coords['latitude'][y])
-    llat = float(gridto.coords['lat_b'][y])
-    ulat = float(gridto.coords['lat_b'][y+1])
+    # load countries lookup:
+    countries = pd.read_csv(popdata_dpath+popdata_lookup_fname,
+                            error_bad_lines=False, sep='\t')
+    countries = countries[['Value', 'ISOCODE']]
+    # reformat and save as csv
+    cpc = pd.DataFrame([countries['Value'], countries['ISOCODE']]).T
+    cpc = cpc.set_index('Value')
+    # save lookup for GPW value -> ISO mapping
+    cpc.to_csv('./lookups/country_lookup.csv')
     
     
     
-    for x in range(gridto.dims['longitude']):
-        
-        # get lon coordinate (centre, lower and upper)
-        clon = float(gridto.coords['longitude'][x])
-        llon = float(gridto.coords['lon_b'][x])
-        ulon = float(gridto.coords['lon_b'][x+1])
-        
-        # slice the country grid for box
-        cda = da.loc[{'longitude':slice(llon, ulon), 'latitude':slice(llat, ulat)}]
-        # find the mode
-        countries.loc[{'longitude':clon, 'latitude':clat}] = float(stats.mode(cda.values.flatten())[0])
-        
-        
-        
-countries = countries.to_dataset(name='mask')
-# countries.attrs['lookup'] = cpc.to_dict()['ISOCODE']
-        
-countries.to_netcdf('/nfs/a340/eebjs/hiadata/population_count/regridded/country_mask.nc')
+    ### COARSEN POPULATION COUNT
+    popda = coarsen_to_gridto(ds['Population Count, v4.11 ('+\
+                              str(population_year)+')'],
+                              gridto=gridto)
+    popda.to_netcdf('./grids/population_count.nc')
+    
+    
+    
+    ### COARSEN COUNTRY GRID
+    countryda = coarsen_country_grid(ds['National Identifier Grid, v4.11 (2010): National Identifier Grid'], 
+                                     gridto=gridto)
+    countryda.to_netcdf('./grids/country_mask.nc')
