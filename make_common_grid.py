@@ -9,22 +9,15 @@ Created on Fri Nov  5 15:07:44 2021
 import xarray as xr
 import numpy as np
 
-# infile = sys.argv[1]
-infile = '/nfs/a340/eebjs/acrobear/cams/annual_means/cams_surface_pm25_2020.nc'
-
-gridin = xr.load_dataset(infile)
-# gridin = gridin.drop_dims('time')
-
-#%%
 def get_resolution(coords):
-    res = np.unique(np.abs(np.diff(gridin.latitude)))
+    res = np.unique(np.abs(np.diff(coords)))
     if len(res) > 1:
         print('inconsistent resolution along', coords.long_name)
     else:
         res = res[0]
         return res
     
-def make_common_grid(gridin):
+def make_grid_from_modeldata(gridin):
     
     
     # get lon and lat resolution
@@ -50,11 +43,13 @@ def make_common_grid(gridin):
     ds.attrs['longitude resolution'] = lonres
     
     return ds
+
+def make_common_grid(infile):
     
-#%%
+    gridin = xr.load_dataset(infile)
+    
+    gridto = make_grid_from_modeldata(gridin)
 
-# gridto = xeu.grid_global(d_lon=lonres, d_lat=latres)
-gridto = make_common_grid(gridin)
-
-gridto.to_netcdf('/nfs/see-fs-02_users/eebjs/acrobear/scripts/hia/grids/common_grid.nc')
-
+    gridto.to_netcdf('./grids/common_grid.nc')
+    
+    print('common grid saved as ./grids/common_grid.nc')

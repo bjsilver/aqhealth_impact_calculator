@@ -25,7 +25,7 @@ gridto = xr.open_dataset('/nfs/see-fs-02_users/eebjs/acrobear/scripts/hia/grids/
 pop_path = '/nfs/a340/eebjs/hiadata/population_count/raw/'
 fname = 'gpw_v4_population_count_rev11_2pt5_min.nc'
 
-# the netcdf is badly formatter
+# the netcdf is badly formatted
 popds = xr.open_dataset(pop_path+fname)
 
 # load and format a lookup table that maps to the raster coordinate in the netcd

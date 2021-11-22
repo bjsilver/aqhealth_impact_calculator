@@ -1,0 +1,13 @@
+---
+project_name: Acrobear HIA GEMM
+health_function: GEMM
+
+### FILEPATHS ###
+# file path to model data
+model_path: /nfs/a340/eebjs/acrobear/cams/annual_means/cams_surface_pm25_2020.nc
+# filepath to directory containing datafiles
+dpath: /nfs/a340/eebjs/hiadata/
+# GPW netcdf file path
+popdata_path_raw: gpw_v4_population_count_rev11_2pt5_min.nc
+# 
+...
