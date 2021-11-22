@@ -1,5 +1,4 @@
-# files in local version that are not generally usable
-compare_CAMS_hia.py
+plotting_code
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
