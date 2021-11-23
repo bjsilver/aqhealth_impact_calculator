@@ -69,7 +69,7 @@ def coarsen_to_gridto(da, gridto):
             # assign summed value to coarsened dataarray
             popda.loc[{'longitude':clon, 'latitude':clat}] = popsum
             
-    return popda
+    return popda     
 
 
         
@@ -138,7 +138,7 @@ def regrid_population_count():
     # load countries lookup:
     countries = pd.read_csv(config['popdata_dpath']+\
                             config['popdata_lookup_fname'],
-                            error_bad_lines=False, sep='\t')
+                            sep='\t')
     countries = countries[['Value', 'ISOCODE']]
     # reformat and save as csv
     cpc = pd.DataFrame([countries['Value'], countries['ISOCODE']]).T
@@ -150,8 +150,9 @@ def regrid_population_count():
     
     ### COARSEN POPULATION COUNT
     popda = coarsen_to_gridto(ds['Population Count, v4.11 ('+\
-                              str(population_year)+')'],
+                              str(config['population_year'])+')'],
                               gridto=gridto)
+    popda = popda.to_dataset(name=str(config['population_year']))
     popda.to_netcdf('./grids/population_count.nc')
     
     
@@ -160,3 +161,6 @@ def regrid_population_count():
     countryda = coarsen_country_grid(ds['National Identifier Grid, v4.11 (2010): National Identifier Grid'], 
                                      gridto=gridto)
     countryda.to_netcdf('./grids/country_mask.nc')
+    
+if __name__ == '__main__':
+    regrid_population_count()

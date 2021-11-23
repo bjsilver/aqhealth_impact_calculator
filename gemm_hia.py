@@ -10,16 +10,12 @@ Created on Tue Nov  9 09:22:34 2021
 import xarray as xr
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 idx = pd.IndexSlice
 import yaml
 
 # load config file
 config = yaml.safe_load(open("./yamls/acrobear_gemm.yml"))
-
-
-
-
-#%% mapping dictionaries
 
 # dictionary that maps the gemm function cause names to GBD cause names
 gemm_to_gbd = {'Non-accidental function (Non-Communicable + LRI deaths)':['Non-communicable diseases', 'Lower respiratory infections'],
@@ -29,19 +25,18 @@ gemm_to_gbd = {'Non-accidental function (Non-Communicable + LRI deaths)':['Non-c
                'Lung Cancer':'Tracheal, bronchus, and lung cancer',
                'Lower Respiratory Infections':'Lower respiratory infections'}
 
-#%% functions
 
 # get relative risk array
-def gemm_deaths(pm, alpha, mu, tau, theta, baseline_deaths):
+def gemm_deaths(pm_popweighted, alpha, mu, tau, theta, baseline_deaths):
     """Relative risk calculation in GEMM
 
     Keyword arguments:
-    pm     -- the population weighted pm2.5 concentration
+    pm25     -- the population weighted pm2.5 concentration
     alpha, theta, tau and mu -- parameters from the gemm model
     they are specific to each cause and age cohort
     """
     
-    z = max(0, (pm-2.4))
+    z = max(0, (pm_popweighted-2.4))
     
     gamma = np.log(1 + z / alpha) / (1 + np.exp((mu - z) / tau))
     
@@ -52,28 +47,28 @@ def gemm_deaths(pm, alpha, mu, tau, theta, baseline_deaths):
     return deaths
 
 # slice gridded dataarray at country
-def country_slice(da, isocode):
+def country_slice(da, country_isocode, countries, countries_lookup):
     
-    cvalue = int(countries_lookup.loc[isocode])
+    cvalue = int(countries_lookup.loc[country_isocode])
     
-    return da.where(countries['mask'] == cvalue)
+    return da.where(countries == cvalue)
 
 # population weight country mean
-def get_popweight_mean(pm25, isocode):
+def get_popweight_mean(pm25, popcount, country_isocode, countries, countries_lookup):
     
     # get pm25 slice of country
-    pm25slice = country_slice(pm25, isocode)
+    pm25slice = country_slice(pm25, country_isocode, countries, countries_lookup)
     
     # get population slice of country
-    popslice = country_slice(popcount, isocode)
+    popslice = country_slice(popcount, country_isocode, countries, countries_lookup)
     
     # population weight
-    popweighted = float(((pm25slice * popslice) / popslice.sum()).sum())
+    popweighted = ((pm25slice * popslice) / popslice.sum()).sum()
     
-    return popweighted
+    return float(popweighted)
 
 # get baseline health metric
-def get_bhm(country_isocode, age_group, cause, measure):
+def get_bhm(bhdf, country_isocode, age_group, cause, isomap, measure):
     
     who_country_id = isomap.loc[country_isocode]
     gbd_cause = gemm_to_gbd[cause]
@@ -92,7 +87,7 @@ def get_bhm(country_isocode, age_group, cause, measure):
         
 
 # function to get the population structure for a given country and age group
-def get_age_group_population(country_isocode, age_group):
+def get_age_group_population(popstruct, popcount, country_isocode, age_group, isomap, countries, countries_lookup):
     
     who_country_id = isomap.loc[country_isocode]
     
@@ -114,66 +109,31 @@ def get_age_group_population(country_isocode, age_group):
     
     age_group_proportion = float(age_group_population / total_population)
     
-    popslice = country_slice(popcount, country_isocode)
+    popslice = country_slice(popcount, country_isocode, countries, countries_lookup)
     
     age_group_population_sliced = popslice * age_group_proportion
     
     return int(age_group_population_sliced.sum())
     
-    # get population in country slice
-    # using this rather than IHME total population in case only parts of country are in domain
-        
     
-    return float(age_group_population)
+
+def get_hia_country(country_isocode, pm25, popcount, popstruct, bhdf, causes, age_groups, uncertainties, gemm_params, isomap, countries, countries_lookup):
     
+    mindex = pd.MultiIndex.from_product([[country_isocode], age_groups, uncertainties])
+    results = pd.DataFrame(index=mindex, columns=causes)
+    results = results.sort_index()
     
-#%% get iterables
-
-# get a list of countries in the country mask
-country_codes = np.unique(countries['mask'])
-country_codes = country_codes[country_codes < 1000] # remove NaN code
-countries_in = countries_lookup[countries_lookup['Value'].isin(country_codes)].index
-
-# get list of causes in GEMM
-causes = list(gemm_to_gbd.keys())
-
-# get list of age ranges
-age_groups = gemm_params.index.get_level_values(1).unique()
-
-# get an iterable of uncertainty
-uncertainties = ['lower', 'mid', 'upper']
-
-#%% HIA
-
-# create a dataframe to store results
-mindex = pd.MultiIndex.from_product([countries_in, age_groups, uncertainties])
-results = pd.DataFrame(index=mindex, columns=causes)
-results = results.sort_index() # sort for faster indexing
-
-
-cause = causes[0]
-
-
-for country_isocode in countries_in:
-    print(country_isocode)
-    if country_isocode not in isomap.index:
-        print('skipping', country_isocode, 'due to no data')
-        continue
-    
-    pm_popweighted = get_popweight_mean(pm25, country_isocode)
+    pm_popweighted = get_popweight_mean(pm25, popcount, country_isocode, countries, countries_lookup)
         
     for cause in causes:
     
         for age_group in age_groups:
             
             # get baseline death rate
-            baseline_deaths = get_bhm(country_isocode=country_isocode,
-                    age_group=age_group,
-                    cause=cause,
-                    measure='Deaths')
+            baseline_deaths = get_bhm(bhdf, country_isocode, age_group, cause,
+                                      isomap, measure='Deaths')
             
-            age_group_pop = get_age_group_population(country_isocode=country_isocode,
-                                                     age_group=age_group)
+            age_group_pop = get_age_group_population(popstruct, popcount, country_isocode, age_group, isomap, countries, countries_lookup)
             
             # get GEMM parameters
             theta, theta_se, alpha, mu, tau = gemm_params.loc[cause, age_group]
@@ -188,7 +148,7 @@ for country_isocode in countries_in:
                 elif uncert == 'upper':
                     theta_uncert = theta + theta_se
                 
-                mortality_rate = gemm_deaths(pm=pm_popweighted, 
+                mortality_rate = gemm_deaths(pm_popweighted, 
                             alpha=alpha, mu=mu, tau=tau, theta=theta_uncert, 
                             baseline_deaths=baseline_deaths)
     
@@ -196,6 +156,8 @@ for country_isocode in countries_in:
                 deaths = mortality_rate * age_group_pop / 100000
                 
                 results.loc[idx[country_isocode, age_group, uncert], cause] = deaths
+                
+    return results.astype(int)
                 
                 
                 
@@ -205,37 +167,74 @@ def gemm_hia():
     
     # load regridded population count dataset
     popcount = xr.open_dataset('./grids/population_count.nc')
-
+    popcount = popcount[str(config['population_year'])]
     # load the country mask
-    countries = xr.open_dataset('./grids/country_mask.nc')
+    countries = xr.open_dataset('./grids/country_mask.nc')['mask']
+
     countries_lookup = pd.read_csv('./lookups/country_lookup.csv',
                                    index_col='ISOCODE')
-
     # load baseline health data
     bhdf = pd.read_csv(config['bh_fpath'],
                        index_col=['location_id', 'age_name', 'cause_name', 'measure_name'])
     bhdf = bhdf.sort_index()
-
+    
     # load PM data
     pm25 = xr.open_dataset(config['model_path'])
-
-    # load GEMM parameters
-    gemm_params = pd.read_csv('/nfs/a340/eebjs/hiadata/gemm_function/gemm_parameters.csv', 
-                              index_col=[0,1,2])
+    pm25 = pm25[config['pm25var_name']]
     
+    # load GEMM parameters
+    gemm_params = pd.read_csv(config['gemm_params_fpath'], 
+                              index_col=[0,1,2])
     # population age structure
     popstruct = pd.read_csv(config['popstruct_fpath'],
                             index_col='location_id')
-    
     # exclude or include china (IN or EX)
     gemm_params = gemm_params.loc['All-regions, '+config['include_china']+'cluding China']
-
     # load ISO code mapper for WHO country names
-    isomap = pd.read_csv(dpath+'WHO_country_isocode_mapper.csv',
+    isomap = pd.read_csv('./lookups/WHO_country_isocode_mapper.csv',
                          index_col=1, squeeze=True)
+    
+    
+    ### MAKE ITERABLES
+
+    # get a list of countries in the country mask
+    country_codes = np.unique(countries)
+    country_codes = country_codes[country_codes < 1000] # remove NaN code
+    countries_in = countries_lookup[countries_lookup['Value'].isin(country_codes)].index
+    # get list of causes in GEMM
+    causes = list(gemm_to_gbd.keys())
+    # get list of age ranges
+    age_groups = gemm_params.index.get_level_values(1).unique()
+    # get an iterable of uncertainty
+    uncertainties = ['lower', 'mid', 'upper']
+
+    ### ITERATE THROUGH HIA
+
+    # create a dataframe to store results
+    mindex = pd.MultiIndex.from_product([countries_in, age_groups, uncertainties])
+    results = pd.DataFrame(index=mindex, columns=causes)
+    results = results.sort_index() # sort for faster indexing
+    
+    countries_results = []
+    pbar = tqdm(countries_in)
+    for country_isocode in pbar:
+        pbar.set_description('calculating HIA for %s' % country_isocode)
+        if country_isocode not in isomap.index:
+            print('skipping', country_isocode, 'due to no data')
+            continue
+        
+        country_results = get_hia_country(country_isocode, pm25, popcount, popstruct, bhdf, causes, age_groups, uncertainties, gemm_params, isomap, countries, countries_lookup)
+        
+        countries_results.append(country_results)
+        
             
-# drop rows of results with no results
-results = results.dropna(how='all')
+    # drop rows of results with no results
+    results = pd.concat(countries_results, axis=1)
+    
+    results.to_csv('./results/'+config['project_name']+'_results.csv')
+    print('results saved to '+'./results/'+config['project_name']+'_results.csv')
+    
+#%%
 
-results.to_csv('/nfs/a340/eebjs/acrobear/hia_results/CAMS_weighted_hia.csv')
-
+if __name__ == '__main__':
+    gemm_hia()

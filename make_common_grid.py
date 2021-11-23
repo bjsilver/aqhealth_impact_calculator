@@ -57,3 +57,6 @@ def make_common_grid():
     gridto.to_netcdf('./grids/common_grid.nc')
     
     print('common grid saved as ./grids/common_grid.nc')
+    
+if __name__ == '__main__':
+    make_common_grid()

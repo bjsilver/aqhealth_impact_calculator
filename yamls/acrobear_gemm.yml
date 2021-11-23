@@ -1,11 +1,13 @@
 ---
-project_name: Acrobear HIA GEMM
+project_name: acrobear_hia_gemm
 health_function: GEMM
 population_year: 2020
 
 ### FILEPATHS ###
 # file path to model data
 model_path: /nfs/a340/eebjs/acrobear/cams/annual_means/cams_surface_pm25_2020.nc
+# name of pm2.5 variable in model netcdf
+pm25var_name: pm2p5
 # filepath to directory containing datafiles
 dpath: /nfs/a340/eebjs/hiadata/
 
@@ -23,6 +25,11 @@ bh_fpath: /nfs/a340/eebjs/hiadata/baseline_health_data/raw/IHME-GBD_2019_DATA-31
 
 # filepath to GBD population structure data
 popstruct_fpath: /nfs/a340/eebjs/hiadata/population_structure/IHME_GBD_2019_POP_2019_Y2020M10D15.CSV
+
+# filepath to GEMM parameters 
+gemm_params_fpath: /nfs/a340/eebjs/hiadata/gemm_function/gemm_parameters.csv
+
+# filepath to WHO country codes -> isocodes mapper
 
 
 ### GEMM options
