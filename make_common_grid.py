@@ -8,6 +8,10 @@ Created on Fri Nov  5 15:07:44 2021
 
 import xarray as xr
 import numpy as np
+import yaml
+
+# load config file
+config = yaml.safe_load(open("./yamls/acrobear_gemm.yml"))
 
 def get_resolution(coords):
     res = np.unique(np.abs(np.diff(coords)))
@@ -44,9 +48,9 @@ def make_grid_from_modeldata(gridin):
     
     return ds
 
-def make_common_grid(infile):
+def make_common_grid():
     
-    gridin = xr.load_dataset(infile)
+    gridin = xr.load_dataset(config['model_path'])
     
     gridto = make_grid_from_modeldata(gridin)
 

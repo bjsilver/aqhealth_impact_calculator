@@ -18,6 +18,14 @@ popdata_contents_fname: gpw_v4_netcdf_contents_rev11.csv
 # filename of GPW national identifier lookup
 popdata_lookup_fname: gpw_v4_national_identifier_grid_rev11_lookup.txt
 
+# filepath to GBD baseline health dataset
+bh_fpath: /nfs/a340/eebjs/hiadata/baseline_health_data/raw/IHME-GBD_2019_DATA-31c9bf16-1.csv
+
+# filepath to GBD population structure data
+popstruct_fpath: /nfs/a340/eebjs/hiadata/population_structure/IHME_GBD_2019_POP_2019_Y2020M10D15.CSV
 
 
+### GEMM options
+# INclude or EXclude China?
+include_china: IN
 ...

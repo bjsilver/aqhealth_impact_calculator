@@ -16,6 +16,11 @@ import xarray as xr
 import pandas as pd
 from tqdm import tqdm
 from scipy import stats
+import yaml
+
+# load config file
+config = yaml.safe_load(open("./yamls/acrobear_gemm.yml"))
+
 
 
 
@@ -43,7 +48,8 @@ def coarsen_to_gridto(da, gridto):
     
     # create a dataarray to fill
     popda = xr.DataArray(coords=gridto.drop(['lat_b', 'lon_b']).coords)
-    for y in tqdm(range(gridto.dims['latitude'])):
+    for y in tqdm(range(gridto.dims['latitude']),
+                  'regridding population data'):
         
         # get lat coordinate (centre, lower and upper)
         clat = float(gridto.coords['latitude'][y])
@@ -75,7 +81,8 @@ def coarsen_country_grid(da, gridto):
 
     # create a dataarray to fill
     countries = xr.DataArray(coords=gridto.drop(['lat_b', 'lon_b']).coords)
-    for y in tqdm(range(gridto.dims['latitude'])):
+    for y in tqdm(range(gridto.dims['latitude']),
+                  'regridding countries mask'):
     
         
         # get lat coordinate (centre, lower and upper)
@@ -105,8 +112,7 @@ def coarsen_country_grid(da, gridto):
 
 #%% main
 
-def regrid_population_count(popdata_dpath, popdata_fname, popdata_contents_fname,
-                            popdata_lookup_fname, population_year):
+def regrid_population_count():
     
     
     ### LOAD DATA
@@ -115,20 +121,23 @@ def regrid_population_count(popdata_dpath, popdata_fname, popdata_contents_fname
     gridto = xr.open_dataset('./grids/common_grid.nc')
     
     # open the netcdf contents description csv
-    contents = pd.read_csv(popdata_dpath+popdata_contents_fname)
+    contents = pd.read_csv(config['popdata_dpath']+\
+                           config['popdata_contents_fname'])
     # keep the important rows
     contents = contents.where(contents.file_name=='gpw_v4_population_count_rev11').dropna()
     # increment index
     contents.index = contents.index + 1
     
     # open GPW population grid
-    popds = xr.open_dataset(popdata_dpath+popdata_fname)
+    popds = xr.open_dataset(config['popdata_dpath']+\
+                            config['popdata_fname'])
     # reformat GPW ds
     ds = reformat_GPW_ds(popds, lookup=contents)
 
     
     # load countries lookup:
-    countries = pd.read_csv(popdata_dpath+popdata_lookup_fname,
+    countries = pd.read_csv(config['popdata_dpath']+\
+                            config['popdata_lookup_fname'],
                             error_bad_lines=False, sep='\t')
     countries = countries[['Value', 'ISOCODE']]
     # reformat and save as csv

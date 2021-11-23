@@ -13,16 +13,15 @@ config = yaml.safe_load(open("./yamls/acrobear_gemm.yml"))
 
 print('Starting health impact assessment for:', config['project_name'])
 
-#%% make common grid
+#%% 1. make common grid based on input model data
 print('making common grid')
 from make_common_grid import make_common_grid
-make_common_grid(infile=config['model_path'])
+make_common_grid()
 
-#%% regrid population data to common grid
+
+#%% 2. regrid population data to common grid
 print('regrid the population data')
 from regrid_population_count import regrid_population_count
-regrid_population_count(popdata_dpath=config['popdata_dpath'], 
-                        popdata_fname=config['popdata_fname'], 
-                        popdata_contents_fname=config['popdata_contents_fname'], 
-                        popdata_lookup_fname=config['popdata_lookup_fname'], 
-                        population_year=config['population_year'])
+regrid_population_count()
+
+#%% 

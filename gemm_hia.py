@@ -11,37 +11,13 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 idx = pd.IndexSlice
+import yaml
 
-dpath = '/nfs/a340/eebjs/hiadata/'
+# load config file
+config = yaml.safe_load(open("./yamls/acrobear_gemm.yml"))
 
-# load regridded population count dataset
-popcount = xr.open_dataset(dpath+'population_count/regridded/population_count.nc')['2020']
 
-# load the country mask
-countries = xr.open_dataset(dpath+'population_count/regridded/country_mask.nc')
-countries_lookup = pd.read_csv(dpath+'population_count/regridded/country_lookup.csv',
-                               index_col='ISOCODE')
 
-# load baseline health data
-bhdf = pd.read_csv(dpath+'baseline_health_data/raw/IHME-GBD_2019_DATA-31c9bf16-1.csv', index_col=['location_id', 'age_name', 'cause_name', 'measure_name']).sort_index()
-
-# load PM data
-# pm25 = xr.open_dataset('/nfs/a340/eebjs/acrobear/cams/annual_means/cams_surface_pm25_2019.nc')['pm2p5'] *1e9 #to convert kg-> ug
-
-pm25 = xr.open_dataset('/nfs/a340/eebjs/acrobear/cams/weighted/background_GFAS_weighted.nc')['weighted t=.7'].mean('time')
-
-# load GEMM parameters
-gemm_params = pd.read_csv(dpath+'gemm_function/gemm_parameters.csv', index_col=[0,1,2])
-# exclude or include china (IN or EX)
-gemm_params = gemm_params.loc['All-regions, INcluding China']
-
-# population age structure
-popstruct = pd.read_csv(dpath+'population_structure/'+'IHME_GBD_2019_POP_2019_Y2020M10D15.CSV',
-                        index_col='location_id')
-
-# load ISO code mapper for WHO country names
-isomap = pd.read_csv(dpath+'WHO_country_isocode_mapper.csv',
-                     index_col=1, squeeze=True)
 
 #%% mapping dictionaries
 
@@ -220,8 +196,46 @@ for country_isocode in countries_in:
                 deaths = mortality_rate * age_group_pop / 100000
                 
                 results.loc[idx[country_isocode, age_group, uncert], cause] = deaths
+                
+                
+                
+def gemm_hia():
+    
+    ### LOAD DATA
+    
+    # load regridded population count dataset
+    popcount = xr.open_dataset('./grids/population_count.nc')
+
+    # load the country mask
+    countries = xr.open_dataset('./grids/country_mask.nc')
+    countries_lookup = pd.read_csv('./lookups/country_lookup.csv',
+                                   index_col='ISOCODE')
+
+    # load baseline health data
+    bhdf = pd.read_csv(config['bh_fpath'],
+                       index_col=['location_id', 'age_name', 'cause_name', 'measure_name'])
+    bhdf = bhdf.sort_index()
+
+    # load PM data
+    pm25 = xr.open_dataset(config['model_path'])
+
+    # load GEMM parameters
+    gemm_params = pd.read_csv('/nfs/a340/eebjs/hiadata/gemm_function/gemm_parameters.csv', 
+                              index_col=[0,1,2])
+    
+    # population age structure
+    popstruct = pd.read_csv(config['popstruct_fpath'],
+                            index_col='location_id')
+    
+    # exclude or include china (IN or EX)
+    gemm_params = gemm_params.loc['All-regions, '+config['include_china']+'cluding China']
+
+    # load ISO code mapper for WHO country names
+    isomap = pd.read_csv(dpath+'WHO_country_isocode_mapper.csv',
+                         index_col=1, squeeze=True)
             
 # drop rows of results with no results
 results = results.dropna(how='all')
 
 results.to_csv('/nfs/a340/eebjs/acrobear/hia_results/CAMS_weighted_hia.csv')
+
