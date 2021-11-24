@@ -22,6 +22,11 @@ gemm_to_gbd = {'Non-accidental function (Non-Communicable + LRI deaths)':['Non-c
                'Lung Cancer':'Tracheal, bronchus, and lung cancer',
                'Lower Respiratory Infections':'Lower respiratory infections'}
 
+# dictionary to map the uncertainty names used in gemm to gbd columns
+gbd_uncert = {'lower':'lower',
+              'mid':'val',
+              'upper':'upper'}
+
 
 # slice gridded dataarray at country
 def country_slice(da, country_isocode, countries, countries_lookup):
@@ -45,7 +50,7 @@ def get_popweight_mean(pm25, popcount, country_isocode, countries, countries_loo
     return float(popweighted)
 
 # get baseline health metric
-def get_bhm(bhdf, country_isocode, age_group, cause, isomap, measure):
+def get_bhm(bhdf, country_isocode, age_group, cause, isomap, measure, uncert):
     
     who_country_id = isomap.loc[country_isocode]
     gbd_cause = gemm_to_gbd[cause]
@@ -56,7 +61,7 @@ def get_bhm(bhdf, country_isocode, age_group, cause, isomap, measure):
     age_group = age_group.replace('+', ' plus')
             
     result = float(bhdf.loc[idx[who_country_id, age_group,
-                                gbd_cause, measure]]['val'].sum())
+                                gbd_cause, measure]][gbd_uncert[uncert]].sum())
     if result == 0:
         raise ValueError('Query returned zero')
             
@@ -85,7 +90,7 @@ def gemm_hazard_ratio(pm25, alpha, mu, tau, theta):
         
 
 # function to get an array of the age group populaton by country by age group
-def get_age_group_population(popstruct, popcount, country_isocode, age_group, isomap, countries, countries_lookup):
+def get_age_group_population(popstruct, popcount, country_isocode, age_group, isomap, countries, countries_lookup, uncert):
     
     who_country_id = isomap.loc[country_isocode]
     
@@ -97,12 +102,12 @@ def get_age_group_population(popstruct, popcount, country_isocode, age_group, is
     total_population = float(cdata.loc[
         (cdata['age_group_name'] == 'All Ages') &\
         (cdata['sex_name'] == 'both')
-        ]['val'])
+        ][gbd_uncert[uncert]])
         
     age_group_population = cdata.loc[
         (cdata['age_group_name'] == age_group) &\
         (cdata['sex_name'] == 'both')
-        ]['val']
+        ][gbd_uncert[uncert]]
     
     
     age_group_proportion = float(age_group_population / total_population)
@@ -202,10 +207,11 @@ def gemm_hia(yamlfile):
                     
                     # get baseline death rate
                     baseline_deaths = get_bhm(bhdf, country_isocode, age_group, cause,
-                                              isomap, measure='Deaths')
+                                              isomap, measure='Deaths',
+                                              uncert=uncert)
                     
                     # get age group population
-                    age_group_pop = get_age_group_population(popstruct, popcount, country_isocode, age_group, isomap, countries, countries_lookup)
+                    age_group_pop = get_age_group_population(popstruct, popcount, country_isocode, age_group, isomap, countries, countries_lookup, uncert=uncert)
                     
                     mortality_rate = (1 - 1 / hazard_ratio) * baseline_deaths
         
