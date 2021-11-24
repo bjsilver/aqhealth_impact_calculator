@@ -14,9 +14,6 @@ from tqdm import tqdm
 idx = pd.IndexSlice
 import yaml
 
-# load config file
-config = yaml.safe_load(open("./yamls/acrobear_gemm.yml"))
-
 # dictionary that maps the gemm function cause names to GBD cause names
 gemm_to_gbd = {'Non-accidental function (Non-Communicable + LRI deaths)':['Non-communicable diseases', 'Lower respiratory infections'],
                'Ischaemic Heart Disease':'Ischemic heart disease',
@@ -117,7 +114,10 @@ def get_age_group_population(popstruct, popcount, country_isocode, age_group, is
     return age_group_population_sliced
     
                 
-def gemm_hia():
+def gemm_hia(yamlfile):
+    
+    # load config file
+    config = yaml.safe_load(open(yamlfile))
     
     ### LOAD DATA
     
@@ -223,4 +223,4 @@ def gemm_hia():
 #%%
 
 if __name__ == '__main__':
-    gemm_hia()
+    gemm_hia(yamlfile)

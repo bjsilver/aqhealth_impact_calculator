@@ -18,8 +18,7 @@ from tqdm import tqdm
 from scipy import stats
 import yaml
 
-# load config file
-config = yaml.safe_load(open("./yamls/acrobear_gemm.yml"))
+
 
 
 
@@ -112,8 +111,10 @@ def coarsen_country_grid(da, gridto):
 
 #%% main
 
-def regrid_population_count():
+def regrid_population_count(yamlfile):
     
+    # load config file
+    config = yaml.safe_load(open(yamlfile))
     
     ### LOAD DATA
     
