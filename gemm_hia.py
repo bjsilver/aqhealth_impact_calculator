@@ -26,26 +26,6 @@ gemm_to_gbd = {'Non-accidental function (Non-Communicable + LRI deaths)':['Non-c
                'Lower Respiratory Infections':'Lower respiratory infections'}
 
 
-# get relative risk array
-def gemm_deaths(pm_popweighted, alpha, mu, tau, theta, baseline_deaths):
-    """Relative risk calculation in GEMM
-
-    Keyword arguments:
-    pm25     -- the population weighted pm2.5 concentration
-    alpha, theta, tau and mu -- parameters from the gemm model
-    they are specific to each cause and age cohort
-    """
-    
-    z = max(0, (pm_popweighted-2.4))
-    
-    gamma = np.log(1 + z / alpha) / (1 + np.exp((mu - z) / tau))
-    
-    hazard_ratio = np.exp(theta * gamma)
-    
-    deaths = (1 - 1 / hazard_ratio) * baseline_deaths
-
-    return deaths
-
 # slice gridded dataarray at country
 def country_slice(da, country_isocode, countries, countries_lookup):
     
@@ -84,9 +64,30 @@ def get_bhm(bhdf, country_isocode, age_group, cause, isomap, measure):
         raise ValueError('Query returned zero')
             
     return result
+
+# get mortality rate array
+def gemm_hazard_ratio(pm25, alpha, mu, tau, theta):
+    """Relative risk calculation in GEMM
+
+    Keyword arguments:
+    pm25     -- the population weighted pm2.5 concentration
+    alpha, theta, tau and mu -- parameters from the gemm model
+    they are specific to each cause and age cohort
+    """
+    
+    # subtract counterfactual
+    z = pm25 - 2.4
+    # set values less than zero to zero
+    z = z.where(z > 0, 0)
+    
+    gamma = np.log(1 + z / alpha) / (1 + np.exp((mu - z) / tau))
+    
+    hazard_ratio = np.exp(theta * gamma)
+    
+    return hazard_ratio
         
 
-# function to get the population structure for a given country and age group
+# function to get an array of the age group populaton by country by age group
 def get_age_group_population(popstruct, popcount, country_isocode, age_group, isomap, countries, countries_lookup):
     
     who_country_id = isomap.loc[country_isocode]
@@ -113,53 +114,8 @@ def get_age_group_population(popstruct, popcount, country_isocode, age_group, is
     
     age_group_population_sliced = popslice * age_group_proportion
     
-    return int(age_group_population_sliced.sum())
+    return age_group_population_sliced
     
-    
-
-def get_hia_country(country_isocode, pm25, popcount, popstruct, bhdf, causes, age_groups, uncertainties, gemm_params, isomap, countries, countries_lookup):
-    
-    mindex = pd.MultiIndex.from_product([[country_isocode], age_groups, uncertainties])
-    results = pd.DataFrame(index=mindex, columns=causes)
-    results = results.sort_index()
-    
-    pm_popweighted = get_popweight_mean(pm25, popcount, country_isocode, countries, countries_lookup)
-        
-    for cause in causes:
-    
-        for age_group in age_groups:
-            
-            # get baseline death rate
-            baseline_deaths = get_bhm(bhdf, country_isocode, age_group, cause,
-                                      isomap, measure='Deaths')
-            
-            age_group_pop = get_age_group_population(popstruct, popcount, country_isocode, age_group, isomap, countries, countries_lookup)
-            
-            # get GEMM parameters
-            theta, theta_se, alpha, mu, tau = gemm_params.loc[cause, age_group]
-            
-            for uncert in uncertainties:
-                
-                # modify theta if calculating an uncertainty bound
-                if uncert == 'lower':
-                    theta_uncert = theta - theta_se
-                elif uncert == 'mid':
-                    theta_uncert = theta
-                elif uncert == 'upper':
-                    theta_uncert = theta + theta_se
-                
-                mortality_rate = gemm_deaths(pm_popweighted, 
-                            alpha=alpha, mu=mu, tau=tau, theta=theta_uncert, 
-                            baseline_deaths=baseline_deaths)
-    
-                # print(age_group, mortality_rate * age_group_pop / 100000)
-                deaths = mortality_rate * age_group_pop / 100000
-                
-                results.loc[idx[country_isocode, age_group, uncert], cause] = deaths
-                
-    return results.astype(int)
-                
-                
                 
 def gemm_hia():
     
@@ -214,22 +170,52 @@ def gemm_hia():
     mindex = pd.MultiIndex.from_product([countries_in, age_groups, uncertainties])
     results = pd.DataFrame(index=mindex, columns=causes)
     results = results.sort_index() # sort for faster indexing
+
     
-    countries_results = []
-    pbar = tqdm(countries_in)
-    for country_isocode in pbar:
-        pbar.set_description('calculating HIA for %s' % country_isocode)
-        if country_isocode not in isomap.index:
-            print('skipping', country_isocode, 'due to no data')
-            continue
-        
-        country_results = get_hia_country(country_isocode, pm25, popcount, popstruct, bhdf, causes, age_groups, uncertainties, gemm_params, isomap, countries, countries_lookup)
-        
-        countries_results.append(country_results)
-        
             
-    # drop rows of results with no results
-    results = pd.concat(countries_results, axis=1)
+    for cause in causes:
+
+        print(cause+':')
+        for age_group in age_groups:
+            print(age_group, end='')
+            
+            # get GEMM parameters
+            theta, theta_se, alpha, mu, tau = gemm_params.loc[cause, age_group]
+            
+            for uncert in uncertainties:
+                    
+                # modify theta if calculating an uncertainty bound
+                if uncert == 'lower':
+                    theta_uncert = theta - theta_se
+                elif uncert == 'mid':
+                    theta_uncert = theta
+                elif uncert == 'upper':
+                    theta_uncert = theta + theta_se
+                    
+                hazard_ratio = gemm_hazard_ratio(pm25, 
+                            alpha=alpha, mu=mu, tau=tau, theta=theta_uncert)
+                
+                for country_isocode in countries_in:
+                    if country_isocode not in isomap.index:
+                        # print('skipping', country_isocode, 'due to no data')
+                        continue
+                    
+                    # get baseline death rate
+                    baseline_deaths = get_bhm(bhdf, country_isocode, age_group, cause,
+                                              isomap, measure='Deaths')
+                    
+                    # get age group population
+                    age_group_pop = get_age_group_population(popstruct, popcount, country_isocode, age_group, isomap, countries, countries_lookup)
+                    
+                    mortality_rate = (1 - 1 / hazard_ratio) * baseline_deaths
+        
+                    deaths = int((mortality_rate * age_group_pop / 100000).sum())
+                    
+                    results.loc[idx[country_isocode, age_group, uncert], cause] = deaths
+                    
+                    
+            print(' ✓', end='  ')
+        print('\n')
     
     results.to_csv('./results/'+config['project_name']+'_results.csv')
     print('results saved to '+'./results/'+config['project_name']+'_results.csv')
