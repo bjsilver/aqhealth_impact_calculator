@@ -15,14 +15,7 @@ idx = pd.IndexSlice
 import yaml
 from hia import config
 
-# dictionary that maps the gemm function cause names to GBD cause names
-#TODO this should be contained within gemm.py somehow
-gemm_to_gbd = {'Non-accidental function (Non-Communicable + LRI deaths)':['Non-communicable diseases', 'Lower respiratory infections'],
-                'Ischaemic Heart Disease':'Ischemic heart disease',
-                'Strokes':'Stroke',
-                'Chronic Obstructive Pulomonary Disease':'Chronic obstructive pulmonary disease',
-                'Lung Cancer':'Tracheal, bronchus, and lung cancer',
-                'Lower Respiratory Infections':'Lower respiratory infections'}
+
 
 # dictionary to map the uncertainty names used in gemm to gbd columns
 gbd_uncert = {'lower':'lower',
@@ -52,10 +45,11 @@ def get_popweight_mean(pm25, popcount, country_isocode, countries, countries_loo
     return float(popweighted)
 
 # get baseline health metric
-def get_bhm(bhdf, country_isocode, age_group, cause, isomap, measure, uncert):
+def get_bhm(bhdf, country_isocode, age_group, cause, isomap, measure, uncert,
+            causemap):
     
     who_country_id = isomap.loc[country_isocode]
-    gbd_cause = gemm_to_gbd[cause]
+    gbd_cause = causemap[cause]
     if type(gbd_cause) is str:
         gbd_cause = [gbd_cause]
         
@@ -154,6 +148,7 @@ def hia_calculation():
     # use the correct hazard function
     if config['hazard_ratio_function'] == 'gemm':
         from health_functions.gemm import GEMM_Function as HealthFunc
+        from health_functions.gemm import gemm_to_gbd as causemap
     # other health functions could be added later like...
     # elif config['hazard_ratio_function'] == 'gbd2019':
         # from health_functions.gemm import GBD2019_Function as HealthFunc
@@ -201,7 +196,7 @@ def hia_calculation():
                     # get baseline death rate
                     baseline_deaths = get_bhm(bhdf, country_isocode, age_group, cause,
                                               isomap, measure='Deaths',
-                                              uncert=uncert)
+                                              uncert=uncert, causemap=causemap)
                     
                     # get age group population
                     age_group_pop = get_age_group_population(popstruct, popcount, country_isocode, age_group, isomap, countries, countries_lookup, uncert=uncert)
