@@ -1,0 +1,44 @@
+---
+project_name: acrobear_hia_gemm_glomap
+health_function: GEMM
+population_year: 2020
+
+### FILEPATHS ###
+# file path to model data
+model_path: /nfs/a340/eebjs/acrobear/glomap/supermean.nc
+# name of pm2.5 variable in model netcdf
+pm25var_name: PM2.5
+# name of latitude coordinate in model netcdf
+latname: lat
+# name of longitude coordinate in model netcdf
+lonname: lon
+# filepath to directory containing datafiles
+dpath: /nfs/a340/eebjs/hiadata/
+
+# filepath to GPW files
+popdata_dpath: /nfs/a340/eebjs/hiadata/population_count/raw/
+# filename of GPW netcdf
+popdata_fname: gpw_v4_population_count_rev11_2pt5_min.nc
+# filename of GPW contents csv
+popdata_contents_fname: gpw_v4_netcdf_contents_rev11.csv
+# filename of GPW national identifier lookup
+popdata_lookup_fname: gpw_v4_national_identifier_grid_rev11_lookup.txt
+
+# filepath to GBD baseline health dataset
+bh_fpath: /nfs/a340/eebjs/hiadata/baseline_health_data/raw/IHME-GBD_2019_DATA-31c9bf16-1.csv
+
+# filepath to GBD population structure data
+popstruct_fpath: /nfs/a340/eebjs/hiadata/population_structure/IHME_GBD_2019_POP_2019_Y2020M10D15.CSV
+
+# filepath to GEMM parameters 
+gemm_params_fpath: /nfs/a340/eebjs/hiadata/gemm_function/gemm_parameters.csv
+
+
+## options (currently gemm is only option)
+hazard_ratio_function: gemm
+
+
+### GEMM options
+# INclude or EXclude China?
+include_china: IN
+...
