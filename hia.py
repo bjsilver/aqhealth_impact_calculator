@@ -8,7 +8,7 @@ Created on Mon Nov 22 13:34:36 2021
 
 import yaml
 
-yamlfile = './config_files/acrobear_gemm.yml'
+yamlfile = './config_files/acrobear_gemm_glomap.yml'
 
 # load config file
 config = yaml.safe_load(open(yamlfile))
@@ -18,7 +18,7 @@ print('Starting health impact assessment for:', config['project_name'])
 #%% 1. make common grid based on input model data
 print('1: making common grid')
 from make_common_grid import make_common_grid
-make_common_grid(yamlfile)
+make_common_grid(yamlfile=yamlfile)
 print('')
 
 

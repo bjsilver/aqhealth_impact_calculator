@@ -225,8 +225,3 @@ def gemm_hia(yamlfile):
     
     results.to_csv('./results/'+config['project_name']+'_results.csv')
     print('results saved to '+'./results/'+config['project_name']+'_results.csv')
-    
-#%%
-
-if __name__ == '__main__':
-    gemm_hia(yamlfile)

@@ -20,10 +20,6 @@ import yaml
 
 
 
-
-
-
-#%% reformat
 def reformat_GPW_ds(popds, lookup):
     
     ds = xr.Dataset(
@@ -38,27 +34,27 @@ def reformat_GPW_ds(popds, lookup):
         
     return ds
 
-#%% coarsen to target grid function
 
-def coarsen_to_gridto(da, gridto):
+
+def coarsen_to_gridto(da, gridto, lonname, latname):
 
     # replace nan with zero
     # da = da.fillna(0)
     
     # create a dataarray to fill
     popda = xr.DataArray(coords=gridto.drop(['lat_b', 'lon_b']).coords)
-    for y in tqdm(range(gridto.dims['latitude']),
+    for y in tqdm(range(gridto.dims[latname]),
                   'regridding population data'):
         
         # get lat coordinate (centre, lower and upper)
-        clat = float(gridto.coords['latitude'][y])
+        clat = float(gridto.coords[latname][y])
         llat = float(gridto.coords['lat_b'][y])
         ulat = float(gridto.coords['lat_b'][y+1])
         
-        for x in range(gridto.dims['longitude']):
+        for x in range(gridto.dims[lonname]):
             
             # get lon coordinate (centre, lower and upper)
-            clon = float(gridto.coords['longitude'][x])
+            clon = float(gridto.coords[lonname][x])
             llon = float(gridto.coords['lon_b'][x])
             ulon = float(gridto.coords['lon_b'][x+1])
             
@@ -66,7 +62,7 @@ def coarsen_to_gridto(da, gridto):
             popsum = float(da.loc[{'longitude':slice(llon, ulon), 'latitude':slice(llat, ulat)}].sum())
             
             # assign summed value to coarsened dataarray
-            popda.loc[{'longitude':clon, 'latitude':clat}] = popsum
+            popda.loc[{lonname:clon, latname:clat}] = popsum
             
     return popda     
 
@@ -74,34 +70,34 @@ def coarsen_to_gridto(da, gridto):
         
 
 
-#%% coarsen the country mask
 
-def coarsen_country_grid(da, gridto):
+
+def coarsen_country_grid(da, gridto, lonname, latname):
 
     # create a dataarray to fill
     countries = xr.DataArray(coords=gridto.drop(['lat_b', 'lon_b']).coords)
-    for y in tqdm(range(gridto.dims['latitude']),
+    for y in tqdm(range(gridto.dims[latname]),
                   'regridding countries mask'):
     
         
         # get lat coordinate (centre, lower and upper)
-        clat = float(gridto.coords['latitude'][y])
+        clat = float(gridto.coords[latname][y])
         llat = float(gridto.coords['lat_b'][y])
         ulat = float(gridto.coords['lat_b'][y+1])
         
         
         
-        for x in range(gridto.dims['longitude']):
+        for x in range(gridto.dims[lonname]):
             
             # get lon coordinate (centre, lower and upper)
-            clon = float(gridto.coords['longitude'][x])
+            clon = float(gridto.coords[lonname][x])
             llon = float(gridto.coords['lon_b'][x])
             ulon = float(gridto.coords['lon_b'][x+1])
             
             # slice the country grid for box
             cda = da.loc[{'longitude':slice(llon, ulon), 'latitude':slice(llat, ulat)}]
             # find the mode
-            countries.loc[{'longitude':clon, 'latitude':clat}] = float(stats.mode(cda.values.flatten())[0])
+            countries.loc[{lonname:clon, latname:clat}] = float(stats.mode(cda.values.flatten())[0])
         
         
         
@@ -109,12 +105,14 @@ def coarsen_country_grid(da, gridto):
 
 
 
-#%% main
+
 
 def regrid_population_count(yamlfile):
     
     # load config file
     config = yaml.safe_load(open(yamlfile))
+    
+    lonname, latname = config['lonname'], config['latname']
     
     ### LOAD DATA
     
@@ -152,7 +150,8 @@ def regrid_population_count(yamlfile):
     ### COARSEN POPULATION COUNT
     popda = coarsen_to_gridto(ds['Population Count, v4.11 ('+\
                               str(config['population_year'])+')'],
-                              gridto=gridto)
+                              gridto=gridto,
+                              lonname=lonname, latname=latname)
     popda = popda.to_dataset(name=str(config['population_year']))
     popda.to_netcdf('./grids/population_count.nc')
     
@@ -160,8 +159,7 @@ def regrid_population_count(yamlfile):
     
     ### COARSEN COUNTRY GRID
     countryda = coarsen_country_grid(ds['National Identifier Grid, v4.11 (2010): National Identifier Grid'], 
-                                     gridto=gridto)
+                                     gridto=gridto,
+                                     lonname=lonname, latname=latname)
     countryda.to_netcdf('./grids/country_mask.nc')
     
-if __name__ == '__main__':
-    regrid_population_count()
