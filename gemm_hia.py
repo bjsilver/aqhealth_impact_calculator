@@ -172,7 +172,8 @@ def gemm_hia(yamlfile):
     ### ITERATE THROUGH HIA
 
     # create a dataframe to store results
-    mindex = pd.MultiIndex.from_product([countries_in, age_groups, uncertainties])
+    mindex = pd.MultiIndex.from_product([countries_in, age_groups, uncertainties],
+                                        names=['country', 'age_group', 'uncertainty'])
     results = pd.DataFrame(index=mindex, columns=causes)
     results = results.sort_index() # sort for faster indexing
 
