@@ -13,7 +13,7 @@ import yaml
 def get_resolution(coords):
     res = np.unique(np.abs(np.diff(coords)))
     if len(res) > 1:
-        print('inconsistent resolution along', coords)
+        raise ValueError('Dataset is not on a regular grid')
     else:
         res = res[0]
         return res
