@@ -16,8 +16,7 @@ import xarray as xr
 import pandas as pd
 from tqdm import tqdm
 from scipy import stats
-import yaml
-
+from hia import config
 
 
 def reformat_GPW_ds(popds, lookup):
@@ -107,10 +106,8 @@ def coarsen_country_grid(da, gridto, lonname, latname):
 
 
 
-def regrid_population_count(yamlfile):
+def regrid_population_count():
     
-    # load config file
-    config = yaml.safe_load(open(yamlfile))
     
     lonname, latname = config['lonname'], config['latname']
     

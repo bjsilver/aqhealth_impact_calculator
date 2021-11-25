@@ -9,6 +9,7 @@ Created on Fri Nov  5 15:07:44 2021
 import xarray as xr
 import numpy as np
 import yaml
+from hia import config
 
 def get_resolution(coords):
     res = np.unique(np.abs(np.diff(coords)))
@@ -47,10 +48,7 @@ def make_grid_from_modeldata(gridin, latname, lonname):
     
     return ds
 
-def make_common_grid(yamlfile):
-    
-    # load config file
-    config = yaml.safe_load(open(yamlfile))
+def make_common_grid():
     
     gridin = xr.load_dataset(config['model_path'])
     
