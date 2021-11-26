@@ -33,7 +33,8 @@ popstruct_fpath: /nfs/a340/eebjs/hiadata/population_structure/IHME_GBD_2019_POP_
 # filepath to GEMM parameters 
 gemm_params_fpath: /nfs/a340/eebjs/hiadata/gemm_function/gemm_parameters.csv
 
-# filepath to WHO country codes -> isocodes mapper
+## options (currently gemm is only option)
+hazard_ratio_function: gemm
 
 
 ### GEMM options

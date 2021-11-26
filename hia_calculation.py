@@ -22,6 +22,11 @@ gbd_uncert = {'lower':'lower',
               'mid':'val',
               'upper':'upper'}
 
+# load the common grid
+gridto = xr.open_dataset('./grids/common_grid.nc')
+# drop the bound coordinates
+gridto = gridto.drop(['lat_b', 'lon_b'])
+
 
 # slice gridded dataarray at country
 def country_slice(da, country_isocode, countries, countries_lookup):
@@ -164,7 +169,8 @@ def hia_calculation():
     # get list of age ranges
     age_groups = HealthFunc.age_groups
     # get an iterable of uncertainty
-    uncertainties = ['lower', 'mid', 'upper']
+    # uncertainties = ['lower', 'mid', 'upper']
+    uncertainties = ['mid'] # just one for testing
 
     ### ITERATE THROUGH HIA
 
@@ -174,25 +180,32 @@ def hia_calculation():
     results = pd.DataFrame(index=mindex, columns=causes)
     results = results.sort_index() # sort for faster indexing
 
-    
+    # make ds to save gridded results in
+    ds = gridto.copy()
             
     for cause in causes:
+        
+        
 
         print(cause+':')
+        adeaths = []
         for age_group in age_groups:
             print(age_group, end='')
-
+            
             for uncert in uncertainties:
                     
                 # get instance of health function for cause, age_group and uncert
                 healthfunc = HealthFunc(cause=cause, age_group=age_group, uncert=uncert)
                 hazard_ratio = healthfunc.calculate_hazard_ratio(pm25)
-    
+                
+                # country_deaths list
+                cdeaths = []
                 for country_isocode in countries_in:
                     if country_isocode not in isomap.index:
                         # print('skipping', country_isocode, 'due to no data')
                         continue
                     
+                    # print(country_isocode)
                     # get baseline death rate
                     baseline_deaths = get_bhm(bhdf, country_isocode, age_group, cause,
                                               isomap, measure='Deaths',
@@ -201,19 +214,36 @@ def hia_calculation():
                     # get age group population
                     age_group_pop = get_age_group_population(popstruct, popcount, country_isocode, age_group, isomap, countries, countries_lookup, uncert=uncert)
                     
+                    # calculate mortality rate from hazard ratio
                     mortality_rate = (1 - 1 / hazard_ratio) * baseline_deaths
-        
-                    deaths = int((mortality_rate * age_group_pop / 100000).sum())
                     
-                    results.loc[idx[country_isocode, age_group, uncert], cause] = deaths
+                    # calculate premature mortalities
+                    deaths = mortality_rate * age_group_pop / 100000
+                    deaths.name = country_isocode
+                    cdeaths.append(deaths)
                     
                     
+                    results.loc[idx[country_isocode, age_group, uncert], cause] = int(deaths.sum())
+                    
+            da = xr.concat(cdeaths, dim='country').sum('country')
+            da.name = age_group
+            adeaths.append(da)
             print(' ✓', end='  ')
+        
+        da = xr.concat(adeaths, dim='age_group')
+        ds[cause] = da
         print('\n')
+        
+    ds.to_netcdf('./results/gridded_results.nc')
+                
+                    
+           
+        
     
     results.to_csv('./results/'+config['project_name']+'_results.csv')
     print('results saved to '+'./results/'+config['project_name']+'_results.csv')
 
+#%%
 
 if __name__ == "__main__":
     hia_calculation()

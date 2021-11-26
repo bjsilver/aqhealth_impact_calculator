@@ -8,7 +8,7 @@ Created on Mon Nov 22 13:34:36 2021
 
 import yaml
 
-yamlfile = './config_files/acrobear_gemm_glomap.yml'
+yamlfile = './config_files/acrobear_gemm_cams2019.yml'
 
 # load config file
 config = yaml.safe_load(open(yamlfile))
