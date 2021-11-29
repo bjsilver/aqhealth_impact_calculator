@@ -7,12 +7,17 @@ Created on Mon Nov 22 13:34:36 2021
 """
 
 import yaml
+import os
 
 yamlfile = './config_files/acrobear_gemm_cams2019.yml'
 
 # load config file
 config = yaml.safe_load(open(yamlfile))
 
+# make a folder for results if there isn't one
+results_fpath = './results/'+config['project_name']
+if not os.path.exists(results_fpath):
+    os.mkdir(results_fpath)
 
 #%%
 if __name__ == '__main__':

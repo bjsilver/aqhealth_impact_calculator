@@ -234,14 +234,11 @@ def hia_calculation():
         ds[cause] = da
         print('\n')
         
-    ds.to_netcdf('./results/gridded_results.nc')
-                
-                    
-           
+    ds.to_netcdf('./results/'+config['project_name']+'/gridded_results.nc')
         
     
-    results.to_csv('./results/'+config['project_name']+'_results.csv')
-    print('results saved to '+'./results/'+config['project_name']+'_results.csv')
+    results.to_csv('./results/'+config['project_name']+'/by_country_results.csv')
+    print('./results/'+config['project_name']+'/by_country_results.csv')
 
 #%%
 
