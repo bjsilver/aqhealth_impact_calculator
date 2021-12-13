@@ -47,6 +47,7 @@ def make_grid_from_modeldata(gridin, latname, lonname):
     ds.attrs['longitude resolution'] = lonres
     
     return ds
+         
 
 def make_common_grid():
     

@@ -63,6 +63,8 @@ def coarsen_to_gridto(da, gridto, lonname, latname):
             # assign summed value to coarsened dataarray
             popda.loc[{lonname:clon, latname:clat}] = popsum
             
+    popda.attrs = gridto.attrs
+            
     return popda     
 
 
@@ -98,7 +100,7 @@ def coarsen_country_grid(da, gridto, lonname, latname):
             # find the mode
             countries.loc[{lonname:clon, latname:clat}] = float(stats.mode(cda.values.flatten())[0])
         
-        
+    countries.attrs = gridto.attrs
         
     return countries.to_dataset(name='mask')        
 
@@ -159,4 +161,3 @@ def regrid_population_count():
                                      gridto=gridto,
                                      lonname=lonname, latname=latname)
     countryda.to_netcdf('./grids/country_mask.nc')
-    

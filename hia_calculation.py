@@ -140,7 +140,8 @@ def hia_calculation():
     # load PM data
     pm25 = xr.open_dataset(config['model_path'])
     pm25 = pm25[config['pm25var_name']]
-    
+    if 'time' in pm25.dims:
+        pm25 = pm25.mean('time')
 
     # population age structure
     popstruct = pd.read_csv(config['popstruct_fpath'],
@@ -220,10 +221,11 @@ def hia_calculation():
                     # calculate premature mortalities
                     deaths = mortality_rate * age_group_pop / 100000
                     deaths.name = country_isocode
+                    
                     cdeaths.append(deaths)
                     
                     
-                    results.loc[idx[country_isocode, age_group, uncert], cause] = int(deaths.sum())
+                    results.loc[idx[country_isocode, age_group, uncert], cause] = float(deaths.sum())
                     
             da = xr.concat(cdeaths, dim='country').sum('country')
             da.name = age_group
@@ -234,11 +236,11 @@ def hia_calculation():
         ds[cause] = da
         print('\n')
         
-    ds.to_netcdf('./results/'+config['project_name']+'/gridded_results.nc')
+    ds.to_netcdf('./results/'+config['scenario_name']+'/gridded_results.nc')
         
     
-    results.to_csv('./results/'+config['project_name']+'/by_country_results.csv')
-    print('./results/'+config['project_name']+'/by_country_results.csv')
+    results.to_csv('./results/'+config['scenario_name']+'/by_country_results.csv')
+    print('./results/'+config['scenario_name']+'/by_country_results.csv')
 
 #%%
 
