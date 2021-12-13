@@ -1,5 +1,11 @@
 plotting_code
 results/*
+plotting/
+
+# ignore all config files except one
+config_files/*
+!config_files/example.yml
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
