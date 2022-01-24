@@ -1,6 +1,7 @@
 plotting_code
 results/*
 plotting/
+grids/*
 
 # ignore all config files except one
 config_files/*
