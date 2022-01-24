@@ -1,5 +1,5 @@
 ---
-project_name: acrobear_hia_gemm_glomap
+scenario_name: acrobear_hia_gemm_glomap
 health_function: GEMM
 population_year: 2020
 
@@ -9,9 +9,9 @@ model_path: /nfs/a340/eebjs/acrobear/glomap/supermean.nc
 # name of pm2.5 variable in model netcdf
 pm25var_name: PM2.5
 # name of latitude coordinate in model netcdf
-latname: lat
+latname: latitude
 # name of longitude coordinate in model netcdf
-lonname: lon
+lonname: longitude
 # filepath to directory containing datafiles
 dpath: /nfs/a340/eebjs/hiadata/
 

@@ -8,7 +8,6 @@ Created on Fri Nov  5 15:07:44 2021
 
 import xarray as xr
 import numpy as np
-import yaml
 from hia import config
 
 def get_resolution(coords):
@@ -21,8 +20,8 @@ def get_resolution(coords):
     
 def make_grid_from_modeldata(gridin, latname, lonname):
     
-    lats = gridin.coords[latname]
-    lons = gridin.coords[lonname]
+    lats = crop_to.coords[config['latname']]
+    lons = crop_to.coords[config['latname']]
     
     # get lon and lat resolution
     latres = get_resolution(lats)
@@ -48,15 +47,41 @@ def make_grid_from_modeldata(gridin, latname, lonname):
     
     return ds
 
+def make_grid_from_popdata(gridin, crop_to):
+    ds = xr.Dataset(coords={key: gridin.coords[key] for key in ['latitude', 'longitude']})
+    
+    lats = crop_to.coords[config['latname']]
+    lons = crop_to.coords[config['lonname']]
+    ds = ds.loc[{'latitude':slice(lats.max(), lats.min()),
+                 'longitude':slice(lons.min(), lons.max())}]
+    return ds
+
 def make_common_grid():
     
-    gridin = xr.load_dataset(config['model_path'])
+    if config['regrid_to'] == 'mod':
     
-    gridto = make_grid_from_modeldata(gridin, 
-                                      latname=config['latname'],
-                                      lonname=config['lonname'])
+        gridin = xr.load_dataset(config['model_path'])
+        
+        gridto = make_grid_from_modeldata(gridin)
 
+        
+    elif config['regrid_to'] == 'pop':
+        
+        gridin = xr.open_dataset(config['popdata_dpath']+\
+                                 config['popdata_fname'])
+            
+        # crop to the model domain
+        crop_to = xr.load_dataset(config['model_path'])
+            
+        gridto = make_grid_from_popdata(gridin, crop_to)
+        
+    else:
+        raise ValueError('\'regrid_to\' must be \'pop\' or \'mod\'')
+        
     gridto.to_netcdf('./grids/common_grid.nc')
+        
     
     print('common grid saved as ./grids/common_grid.nc')
     
+if __name__ == '__main__':
+    make_common_grid()

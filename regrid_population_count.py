@@ -19,7 +19,19 @@ from scipy import stats
 from hia import config
 
 
-def reformat_GPW_ds(popds, lookup):
+def load_popds():
+    
+    # open the netcdf contents description csv
+    contents = pd.read_csv(config['popdata_dpath']+\
+                           config['popdata_contents_fname'])
+    # keep the important rows
+    contents = contents.where(contents.file_name=='gpw_v4_population_count_rev11').dropna()
+    # increment index
+    contents.index = contents.index + 1
+    
+    # open GPW population grid
+    popds = xr.open_dataset(config['popdata_dpath']+\
+                            config['popdata_fname'])
     
     ds = xr.Dataset(
                       coords=popds.drop_dims('raster').coords,
@@ -28,7 +40,7 @@ def reformat_GPW_ds(popds, lookup):
     for rast in popds.raster.values:
         
         da = popds['Population Count, v4.11 (2000, 2005, 2010, 2015, 2020): 2.5 arc-minutes'][rast-1]
-        da_name = lookup.loc[rast, 'raster_name']
+        da_name = contents.loc[rast, 'raster_name']
         ds[da_name] = da.drop('raster')
         
     return ds
@@ -62,6 +74,8 @@ def coarsen_to_gridto(da, gridto, lonname, latname):
             
             # assign summed value to coarsened dataarray
             popda.loc[{lonname:clon, latname:clat}] = popsum
+            
+    popda.attrs = gridto.attrs
             
     return popda     
 
@@ -98,7 +112,7 @@ def coarsen_country_grid(da, gridto, lonname, latname):
             # find the mode
             countries.loc[{lonname:clon, latname:clat}] = float(stats.mode(cda.values.flatten())[0])
         
-        
+    countries.attrs = gridto.attrs
         
     return countries.to_dataset(name='mask')        
 
@@ -116,19 +130,9 @@ def regrid_population_count():
     # load global target grid:
     gridto = xr.open_dataset('./grids/common_grid.nc')
     
-    # open the netcdf contents description csv
-    contents = pd.read_csv(config['popdata_dpath']+\
-                           config['popdata_contents_fname'])
-    # keep the important rows
-    contents = contents.where(contents.file_name=='gpw_v4_population_count_rev11').dropna()
-    # increment index
-    contents.index = contents.index + 1
     
-    # open GPW population grid
-    popds = xr.open_dataset(config['popdata_dpath']+\
-                            config['popdata_fname'])
     # reformat GPW ds
-    ds = reformat_GPW_ds(popds, lookup=contents)
+    ds = load_popds()
 
     
     # load countries lookup:
@@ -159,4 +163,3 @@ def regrid_population_count():
                                      gridto=gridto,
                                      lonname=lonname, latname=latname)
     countryda.to_netcdf('./grids/country_mask.nc')
-    

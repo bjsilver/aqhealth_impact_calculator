@@ -1,13 +1,13 @@
 ---
-project_name: acrobear_hia_gemm
+scenario_name: acrobear_hia_gemm_glomap
 health_function: GEMM
 population_year: 2020
 
 ### FILEPATHS ###
 # file path to model data
-model_path: /nfs/a340/eebjs/acrobear/cams/annual_means/cams_surface_pm25_2020.nc
+model_path: /nfs/a340/eebjs/acrobear/glomap/supermean.nc
 # name of pm2.5 variable in model netcdf
-pm25var_name: pm2p5
+pm25var_name: PM2.5
 # name of latitude coordinate in model netcdf
 latname: latitude
 # name of longitude coordinate in model netcdf
@@ -32,6 +32,7 @@ popstruct_fpath: /nfs/a340/eebjs/hiadata/population_structure/IHME_GBD_2019_POP_
 
 # filepath to GEMM parameters 
 gemm_params_fpath: /nfs/a340/eebjs/hiadata/gemm_function/gemm_parameters.csv
+
 
 ## options (currently gemm is only option)
 hazard_ratio_function: gemm
