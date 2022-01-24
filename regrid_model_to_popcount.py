@@ -6,43 +6,51 @@ Created on Mon Nov 29 17:44:47 2021
 @author: eebjs
 """
 
+import os
 import xarray as xr
-import pandas as pd
-from regrid_population_count import reformat_GPW_ds
+import numpy as np
+from regrid_population_count import load_popds
 from hia import config
 import xesmf as xe
+import pickle
 
-### LOAD POP DATA
-
-# load global target grid:
-gridto = xr.open_dataset('./grids/common_grid.nc')
-
-# open the netcdf contents description csv
-contents = pd.read_csv(config['popdata_dpath']+\
-                       config['popdata_contents_fname'])
-# keep the important rows
-contents = contents.where(contents.file_name=='gpw_v4_population_count_rev11').dropna()
-# increment index
-contents.index = contents.index + 1
-
-# open GPW population grid
-popds = xr.open_dataset(config['popdata_dpath']+\
-                        config['popdata_fname'])
-# reformat GPW ds
-ds = reformat_GPW_ds(popds, lookup=contents)
-
-popda = ds['Population Count, v4.11 (2020)']
-
-modelda = xr.load_dataset(config['model_path'])['pm2p5']
-lats = modelda.latitude
-lons = modelda.longitude
-minlat, maxlat = lats.min(), lats.max()
-minlon, maxlon = lons.min(), lons.max()
-
-
-popda = popda.loc[{'latitude':slice(maxlat, minlat), 'longitude':slice(minlon, maxlon)}]
+    
+    
 
 #%%
-regridder = xe.Regridder(modelda, popda, 'nearest_s2d')
+def regrid_model_to_popcount():
+    
+    if os.path.exists('./grids/model_regridded_'+config['scenario_name']+'.nc'):
+        print('regridded model data found at \n'+\
+             './grids/model_regridded_'+config['scenario_name']+'.nc' )
+        return
+    
+    modelda = xr.load_dataset(config['model_path'])[config['pm25var_name']]
+    countries = load_popds()
+    
+    lats = modelda.coords[config['latname']]
+    lons = modelda.coords[config['lonname']]
+    
+    # get max and min lat and lon from regridded countries data
+    maxlat, minlat = lats.max(), lats.min()
+    maxlon, minlon = lons.max(), lons.min()
 
-da_regridded = regridder(modelda, keep_attrs=True)
+    countries = countries.loc[{'latitude':slice(maxlat, minlat),
+                                      'longitude':slice(minlon, maxlon)}]
+
+    popda = countries['Population Count, v4.11 ('+\
+                              str(config['population_year'])+')']
+    popda = popda.loc[{'latitude':slice(maxlat, minlat), 'longitude':slice(minlon, maxlon)}]
+    popda.name = str(config['population_year'])
+    popda.to_netcdf('./grids/population_count.nc')
+
+    regridder = xe.Regridder(modelda, popda, 'bilinear')
+    
+    da_regridded = regridder(modelda, keep_attrs=True)
+    
+    da_regridded.to_netcdf('./grids/model_regridded_'+config['scenario_name']+'.nc')
+    
+
+    
+if __name__ == "__main__":
+    regrid_model_to_popcount()

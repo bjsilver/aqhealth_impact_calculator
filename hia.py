@@ -9,8 +9,8 @@ Created on Mon Nov 22 13:34:36 2021
 import yaml
 import os
 
-yamlfile = './config_files/acrobear_gemm_cams2020.yml'
-
+yamlfile = './config_files/acrobear_gemm_camsGLOMAPscaled.yml'
+                           
 # load config file
 config = yaml.safe_load(open(yamlfile))
 
@@ -31,10 +31,17 @@ if __name__ == '__main__':
     print('')
     
     
-    #%% 2. regrid population data to common grid
+    #%% 2. regrid population or model data to common grid
     print('2: regridding population data')
-    from regrid_population_count import regrid_population_count
-    regrid_population_count()
+    if config['regrid_to'] == 'mod':
+        
+        from regrid_population_count import regrid_population_count
+        regrid_population_count()
+        
+        
+    elif config['regrid_to'] == 'pop':
+        from regrid_model_to_popcount import regrid_model_to_popcount
+        regrid_model_to_popcount()
     print('')
     
     #%% perform HIA
