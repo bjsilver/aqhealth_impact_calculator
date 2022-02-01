@@ -88,27 +88,6 @@ class PopulationData():
     #     popweighted = ((pm25slice * popslice) / popslice.sum()).sum()
         
     #     return float(popweighted)
-
-# get mortality rate array
-def gemm_hazard_ratio(pm25, alpha, mu, tau, theta):
-    """Relative risk calculation in GEMM
-
-    Keyword arguments:
-    pm25     -- the population weighted pm2.5 concentration
-    alpha, theta, tau and mu -- parameters from the gemm model
-    they are specific to each cause and age cohort
-    """
-    
-    # subtract counterfactual
-    z = pm25 - 2.4
-    # set values less than zero to zero
-    z = z.where(z > 0, 0)
-    
-    gamma = np.log(1 + z / alpha) / (1 + np.exp((mu - z) / tau))
-    
-    hazard_ratio = np.exp(theta * gamma)
-    
-    return hazard_ratio
     
                 
 def hia_calculation():
