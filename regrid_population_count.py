@@ -17,35 +17,7 @@ import pandas as pd
 from tqdm import tqdm
 from scipy import stats
 from hia import config
-
-
-def load_popds():
-    
-    # open the netcdf contents description csv
-    contents = pd.read_csv(config['popdata_dpath']+\
-                           config['popdata_contents_fname'])
-    # keep the important rows
-    contents = contents.where(contents.file_name=='gpw_v4_population_count_rev11').dropna()
-    # increment index
-    contents.index = contents.index + 1
-    
-    # open GPW population grid
-    popds = xr.open_dataset(config['popdata_dpath']+\
-                            config['popdata_fname'])
-    
-    ds = xr.Dataset(
-                      coords=popds.drop_dims('raster').coords,
-                      attrs=popds.drop_dims('raster').attrs)
-    
-    for rast in popds.raster.values:
-        
-        da = popds['Population Count, v4.11 (2000, 2005, 2010, 2015, 2020): 2.5 arc-minutes'][rast-1]
-        da_name = contents.loc[rast, 'raster_name']
-        ds[da_name] = da.drop('raster')
-        
-    return ds
-
-
+from utils.ufuncs import load_popds
 
 def coarsen_to_gridto(da, gridto, lonname, latname):
 
@@ -78,9 +50,6 @@ def coarsen_to_gridto(da, gridto, lonname, latname):
     popda.attrs = gridto.attrs
             
     return popda     
-
-
-        
 
 
 

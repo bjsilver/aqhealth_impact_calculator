@@ -26,82 +26,68 @@ gridto = xr.open_dataset('./grids/common_grid.nc')
 # drop the bound coordinates if present
 if 'lat_b' in gridto.coords:
     gridto = gridto.drop(['lat_b', 'lon_b'])
-    
-age_structure = pd.read_pickle('./lookups/age_structure.P')
 
-
-# slice gridded dataarray at country
-def country_slice(da, country_isocode, countries, countries_lookup):
+class BaseLineHealthData:
     
-    cvalue = countries_lookup.loc[country_isocode]
-    
-    return da.where(countries == cvalue)
-
-# population weight country mean
-def get_popweight_mean(pm25, popcount, country_isocode, countries, countries_lookup):
-    
-    # get pm25 slice of country
-    pm25slice = country_slice(pm25, country_isocode, countries, countries_lookup)
-    
-    # get population slice of country
-    popslice = country_slice(popcount, country_isocode, countries, countries_lookup)
-    
-    # population weight
-    popweighted = ((pm25slice * popslice) / popslice.sum()).sum()
-    
-    return float(popweighted)
-
-# get baseline health metric
-def get_bhm(bhdf, country_isocode, age_group, cause, isomap, measure, uncert,
-            causemap):
-    
-    who_country_id = isomap.loc[country_isocode]
-    gbd_cause = causemap[cause]
-    if type(gbd_cause) is str:
-        gbd_cause = [gbd_cause]
+    def __init__(self, config):
+        self.config = config
         
+        if self.config['hazard_ratio_function'] == 'gemm':
+            from health_functions.gemm import gemm_to_gbd as causemap
+        self.causemap = causemap
 
-    result = float(bhdf.loc[idx[who_country_id, age_group,
-                                gbd_cause, measure]][gbd_uncert[uncert]].sum())
-    # if result == 0:
-    #     raise ValueError('Query returned zero')
+        # load and clean baseline health data
+        bhdf = pd.read_csv(self.config['bh_fpath'])
+        agecol = bhdf['age_name'].str.replace(' to ', '-')
+        agecol = agecol.str.replace(' plus', '+')
+        bhdf['age_name'] = agecol
+        bhdf = bhdf.set_index(['location_id', 'age_name', 'cause_name', 'measure_name'])
+        bhdf = bhdf.sort_index()
+        self.bhdf = bhdf
+        
+        self.isomap = pd.read_csv('./lookups/WHO_country_isocode_mapper.csv',
+                             index_col=1, squeeze=True)
+     
+    def lookup(self, country_isocode, cause, age_group,
+               measure, uncert):
+        
+        who_country_id = self.isomap.loc[country_isocode]
+        gbd_cause = self.causemap[cause]
+        if type(gbd_cause) is str:
+            gbd_cause = [gbd_cause]
             
-    return result
 
-# get mortality rate array
-def gemm_hazard_ratio(pm25, alpha, mu, tau, theta):
-    """Relative risk calculation in GEMM
-
-    Keyword arguments:
-    pm25     -- the population weighted pm2.5 concentration
-    alpha, theta, tau and mu -- parameters from the gemm model
-    they are specific to each cause and age cohort
-    """
-    
-    # subtract counterfactual
-    z = pm25 - 2.4
-    # set values less than zero to zero
-    z = z.where(z > 0, 0)
-    
-    gamma = np.log(1 + z / alpha) / (1 + np.exp((mu - z) / tau))
-    
-    hazard_ratio = np.exp(theta * gamma)
-    
-    return hazard_ratio
+        result = float(self.bhdf.loc[idx[who_country_id, age_group,
+                                    gbd_cause, measure]][gbd_uncert[uncert]].sum())
         
-
-# function to get an array of the age group populaton by country by age group
-def get_age_group_population(country_isocode, age_group, uncert, 
-                             popslices, age_structure):
-
+        return result
     
-    age_group_proportion = age_structure.loc[(uncert, age_group, country_isocode)]
+class PopulationData():
     
-    popslice = popslices[country_isocode].copy()
+    def __init__(self):
+        with open('./grids/pop_count_slices.P', 'rb') as handle:
+            self.popslices = pickle.load(handle)
+        self.age_structure = pd.read_pickle('./lookups/age_structure.P')
+        
+    def lookup(self, country_isocode, age_group, uncert):
+        age_group_proportion = self.age_structure.loc[(uncert, age_group, country_isocode)]
+        popslice = self.popslices[country_isocode].copy()
+        age_group_population_sliced = popslice * age_group_proportion
+        return age_group_population_sliced
     
-    age_group_population_sliced = popslice * age_group_proportion
-    
-    return age_group_population_sliced
+    # population weight country mean
+    # def get_popweight_mean(pm25, popcount, country_isocode, countries, countries_lookup):
+        
+    #     # get pm25 slice of country
+    #     pm25slice = country_slice(pm25, country_isocode, countries, countries_lookup)
+        
+    #     # get population slice of country
+    #     popslice = country_slice(popcount, country_isocode, countries, countries_lookup)
+        
+    #     # population weight
+    #     popweighted = ((pm25slice * popslice) / popslice.sum()).sum()
+        
+    #     return float(popweighted)
     
                 
 def hia_calculation():
@@ -132,18 +118,11 @@ def hia_calculation():
         if 'time' in pm25.dims:
             pm25 = pm25.mean('time')
         
-    with open('./grids/pop_count_slices.P', 'rb') as handle:
-        popslices = pickle.load(handle)
+    
 
     countries_lookup = pd.read_csv('./lookups/country_lookup.csv',
                                    index_col='ISOCODE', squeeze=True)
-    # load and clean baseline health data
-    bhdf = pd.read_csv(config['bh_fpath'])
-    agecol = bhdf['age_name'].str.replace(' to ', '-')
-    agecol = agecol.str.replace(' plus', '+')
-    bhdf['age_name'] = agecol
-    bhdf = bhdf.set_index(['location_id', 'age_name', 'cause_name', 'measure_name'])
-    bhdf = bhdf.sort_index()
+
     
 
 
@@ -175,6 +154,10 @@ def hia_calculation():
     # get an iterable of uncertainty
     uncertainties = ['lower', 'mid', 'upper']
     # uncertainties = ['mid'] # just one for testing
+    
+    # instatiate datasets
+    bhd = BaseLineHealthData(config)
+    popdata = PopulationData()
     
 
     ### ITERATE THROUGH HIA
@@ -216,11 +199,15 @@ def hia_calculation():
                     # print(country_isocode)
                     # get baseline death rate
                     
-                    baseline_deaths = get_bhm(bhdf, country_isocode, age_group, cause,isomap, measure='Deaths', uncert=uncert, causemap=causemap)
+                    baseline_deaths = bhd.lookup(country_isocode=country_isocode,
+                                                 cause=cause, 
+                                                 age_group=age_group, 
+                                                 measure='Deaths', 
+                                                 uncert=uncert)
                     
           
                     # get age group population
-                    age_group_pop = get_age_group_population(country_isocode, age_group, uncert, popslices, age_structure)
+                    age_group_pop = popdata.lookup(country_isocode, age_group, uncert)
                  
                     hazard_ratio_slice = hazard_ratio.where(age_group_pop.notnull())
                     # calculate mortality rate from hazard ratio
