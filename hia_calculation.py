@@ -11,7 +11,7 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 idx = pd.IndexSlice
-from hia import config
+from hia import config, SCENARIO_NAME
 from regrid_population_count import load_popds
 import pickle
 
@@ -113,7 +113,7 @@ def hia_calculation():
         countries = popds['National Identifier Grid, v4.11 (2010): National Identifier Grid']
         
         pm25 = xr.open_dataset('./grids/model_regridded_'+\
-                               config['scenario_name']+'.nc')
+                               SCENARIO_NAME+'.nc')
         pm25 = pm25[config['pm25var_name']]
         if 'time' in pm25.dims:
             pm25 = pm25.mean('time')
@@ -235,11 +235,11 @@ def hia_calculation():
         ds[cause] = da
         print('\n')
         
-    ds.to_netcdf('./results/'+config['scenario_name']+'/gridded_results.nc')
+    ds.to_netcdf('./results/'+SCENARIO_NAME+'/gridded_results.nc')
         
     
-    results.to_csv('./results/'+config['scenario_name']+'/by_country_results.csv')
-    print('./results/'+config['scenario_name']+'/by_country_results.csv')
+    results.to_csv('./results/'+SCENARIO_NAME+'/by_country_results.csv')
+    print('./results/'+SCENARIO_NAME+'/by_country_results.csv')
 
 #%%
 

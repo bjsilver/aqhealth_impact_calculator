@@ -10,7 +10,7 @@ import os
 import xarray as xr
 import numpy as np
 from regrid_population_count import load_popds
-from hia import config
+from hia import config, SCENARIO_NAME
 import xesmf as xe
 import pickle
 
@@ -20,9 +20,9 @@ import pickle
 #%%
 def regrid_model_to_popcount():
     
-    if os.path.exists('./grids/model_regridded_'+config['scenario_name']+'.nc'):
+    if os.path.exists('./grids/model_regridded_'+SCENARIO_NAME+'.nc'):
         print('regridded model data found at \n'+\
-             './grids/model_regridded_'+config['scenario_name']+'.nc' )
+             './grids/model_regridded_'+SCENARIO_NAME+'.nc' )
         return
     
     modelda = xr.load_dataset(config['model_path'])[config['pm25var_name']]
@@ -48,7 +48,7 @@ def regrid_model_to_popcount():
     
     da_regridded = regridder(modelda, keep_attrs=True)
     
-    da_regridded.to_netcdf('./grids/model_regridded_'+config['scenario_name']+'.nc')
+    da_regridded.to_netcdf('./grids/model_regridded_'+SCENARIO_NAME+'.nc')
     
 
     
