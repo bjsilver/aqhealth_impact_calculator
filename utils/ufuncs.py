@@ -7,6 +7,8 @@ Created on Wed Dec 1 10:02:28 2021
 """
 
 import pandas as pd
+from hia import config
+import xarray as xr
 
 
 def read_hiadf(path):
