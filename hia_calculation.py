@@ -69,8 +69,13 @@ class PopulationData():
             self.popslices = pickle.load(handle)
         self.age_structure = pd.read_pickle('./lookups/age_structure.P')
         
-    def lookup(self, country_isocode, age_group, uncert):
-        age_group_proportion = self.age_structure.loc[(uncert, age_group, country_isocode)]
+    uncert_dict = {'lower':'lower',
+                   'mid':'val',
+                   'upper':'upper'}
+        
+    def lookup(self, country_isocode, age_group, uncert, uncert_dict=uncert_dict):
+        age_group_proportion = self.age_structure.loc[(uncert_dict[uncert], 
+                                                       age_group, country_isocode)]
         popslice = self.popslices[country_isocode].copy()
         age_group_population_sliced = popslice * age_group_proportion
         return age_group_population_sliced
