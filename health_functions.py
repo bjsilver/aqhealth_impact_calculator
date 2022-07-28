@@ -24,7 +24,7 @@ class gemm():
                     'Lower Respiratory Infections':'Lower respiratory infections'}
     
     # load GEMM params and apply options
-    gemm_params = pd.read_csv(config['gemm_params_fpath'], 
+    gemm_params = pd.read_csv('./lookups/gemm_parameters.csv', 
                               index_col=[0,1,2])
     gemm_params = gemm_params.sort_index()
     

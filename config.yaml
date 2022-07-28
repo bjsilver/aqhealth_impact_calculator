@@ -1,8 +1,6 @@
 bh_fpath: /nfs/a340/eebjs/hiadata/baseline_health_data/raw/IHME-GBD_2019_DATA-31c9bf16-1.csv
 fire_scenario: fire scenario
-gemm_params_fpath: /nfs/a340/eebjs/hiadata/gemm_function/gemm_parameters.csv
 hazard_ratio_function: gemm
-health_function: GEMM
 include_china: IN
 latname: lat
 lonname: lon
