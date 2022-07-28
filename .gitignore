@@ -1,7 +1,8 @@
 plotting_code
-results/*
-plotting/
-grids/*
+results
+plotting
+grids
+lookups
 
 # ignore all config files except one
 config_files/*

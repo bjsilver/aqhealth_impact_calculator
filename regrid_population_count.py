@@ -16,8 +16,10 @@ import xarray as xr
 import pandas as pd
 from tqdm import tqdm
 from scipy import stats
-from hia import config
 from utils.ufuncs import load_popds
+import yaml
+
+config = yaml.safe_load(open('./config.yaml'))
 
 def coarsen_to_gridto(da, gridto, lonname, latname):
 
@@ -89,7 +91,7 @@ def coarsen_country_grid(da, gridto, lonname, latname):
 
 
 
-def regrid_population_count():
+def regrid_population_count(config):
     
     
     lonname, latname = config['lonname'], config['latname']
