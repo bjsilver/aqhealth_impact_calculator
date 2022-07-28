@@ -44,11 +44,11 @@ class gemm():
             
         # modify theta if calculating an uncertainty bound
         if uncert == 'lower':
-            self.theta_uncert = self.theta - self.theta_se
+            self.theta = self.theta - self.theta_se
         elif uncert == 'mid':
-            self.theta_uncert = self.theta
+            pass
         elif uncert == 'upper':
-            self.theta_uncert = self.theta + self.theta_se
+            self.theta = self.theta + self.theta_se
             
         
         
