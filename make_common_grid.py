@@ -15,24 +15,12 @@ def make_common_grid():
     
     # crop to the model domain
     crop_to = xr.load_dataset(config['model_path'])
-    
-    if config['regrid_to'] == 'mod':
-    
-        gridin = xr.load_dataset(config['model_path'])
-        
-        gridto = make_grid_from_modeldata(gridin, crop_to)
-
-        
-    elif config['regrid_to'] == 'pop':
-        
-        gridin = xr.open_dataset(config['popdata_dpath']+\
+       
+    gridin = xr.open_dataset(config['popdata_dpath']+\
                                  config['popdata_fname'])
             
-        gridto = make_grid_from_popdata(gridin, crop_to)
+    gridto = make_grid_from_popdata(gridin, crop_to)
         
-    else:
-        raise ValueError('\'regrid_to\' must be \'pop\' or \'mod\'')
-    
     os.remove('./grids/common_grid.nc')
     gridto.to_netcdf('./grids/common_grid.nc')
         
@@ -74,18 +62,4 @@ def make_grid_from_modeldata(gridin, crop_to):
     ds.attrs['latitude resolution'] = latres
     ds.attrs['longitude resolution'] = lonres
     
-    return ds
-
-def make_grid_from_popdata(gridin, crop_to):
-    
-    
-    ds = xr.Dataset(coords={key: gridin.coords[key] for key in ['latitude', 'longitude']})
-    
-    lats = crop_to.coords[config['latname']]
-    lons = crop_to.coords[config['lonname']]
-    ds = ds.loc[{'latitude':slice(lats.max(), lats.min()),
-                 'longitude':slice(lons.min(), lons.max())}]
-    return ds
-
-
-    
+    return ds 

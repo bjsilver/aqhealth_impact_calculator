@@ -25,12 +25,8 @@ def hia():
     
     #%% 2. regrid population or model data to common grid
     print('2: regridding population data')
-    if config['regrid_to'] == 'mod':
-        from regrid_population_count import regrid_population_count
-        regrid_population_count()
-    elif config['regrid_to'] == 'pop':
-        from regrid_model_to_popcount import regrid_model_to_popcount
-        regrid_model_to_popcount()
+    from regrid_model_to_popcount import regrid_model_to_popcount
+    regrid_model_to_popcount()
     print('')
     
     #%% perform HIA

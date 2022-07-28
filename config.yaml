@@ -12,7 +12,5 @@ popdata_contents_fname: gpw_v4_netcdf_contents_rev11.csv
 popdata_dpath: /nfs/a340/eebjs/hiadata/population_count/raw/
 popdata_fname: gpw_v4_population_count_rev11_2pt5_min.nc
 popdata_lookup_fname: gpw_v4_national_identifier_grid_rev11_lookup.txt
-popstruct_fpath: /nfs/a340/eebjs/hiadata/population_structure/IHME_GBD_2019_POP_2010_Y2020M10D15.CSV
 population_year: 2002
-regrid_to: pop
 scenario_name: cesm_2002_fireoff
