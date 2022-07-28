@@ -10,7 +10,7 @@ import yaml
 import os
 import sys
 
-config = yaml.safe_load(open(sys.argv[1]))
+config = yaml.safe_load('./config.yaml')
 
 
 def hia():
@@ -40,4 +40,5 @@ def hia():
     print('')
 
 if __name__ == "__main__":
+    config = yaml.safe_load(open(sys.argv[1]))
     hia()
