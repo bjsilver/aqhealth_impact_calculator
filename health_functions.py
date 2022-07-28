@@ -11,15 +11,17 @@ import pandas as pd
 from hia import config
 import numpy as np
 
-# dictionary that maps the gemm function cause names to GBD cause names
-gemm_to_gbd = {'Non-accidental function (Non-Communicable + LRI deaths)':['Non-communicable diseases', 'Lower respiratory infections'],
-                'Ischaemic Heart Disease':'Ischemic heart disease',
-                'Strokes':'Stroke',
-                'Chronic Obstructive Pulomonary Disease':'Chronic obstructive pulmonary disease',
-                'Lung Cancer':'Tracheal, bronchus, and lung cancer',
-                'Lower Respiratory Infections':'Lower respiratory infections'}
 
-class GEMM_Function():
+
+class gemm():
+    
+    # dictionary that maps the gemm function cause names to GBD cause names
+    gbd_mapper = {'Non-accidental function (Non-Communicable + LRI deaths)':['Non-communicable diseases', 'Lower respiratory infections'],
+                    'Ischaemic Heart Disease':'Ischemic heart disease',
+                    'Strokes':'Stroke',
+                    'Chronic Obstructive Pulomonary Disease':'Chronic obstructive pulmonary disease',
+                    'Lung Cancer':'Tracheal, bronchus, and lung cancer',
+                    'Lower Respiratory Infections':'Lower respiratory infections'}
     
     # load GEMM params and apply options
     gemm_params = pd.read_csv(config['gemm_params_fpath'], 
