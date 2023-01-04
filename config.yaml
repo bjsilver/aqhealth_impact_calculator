@@ -1,14 +1,19 @@
 bh_fpath: /nfs/a340/eebjs/hiadata/baseline_health_data/raw/IHME-GBD_2019_DATA-31c9bf16-1.csv
+dpath: /nfs/a340/eebjs/hiadata/
 fire_scenario: fire scenario
+gemm_params_fpath: /nfs/a340/eebjs/hiadata/gemm_function/gemm_parameters.csv
 hazard_ratio_function: gemm
+health_function: GEMM
 include_china: IN
 latname: lat
 lonname: lon
-model_path: /nfs/a340/eebjs/hiadata/pm25_annual_means/pm25_2002_fireoff.nc
+model_path: /nfs/a340/eebjs/hiadata/pm25_annual_means/pm25_2020_fireoff.nc
 pm25var_name: pm25
 popdata_contents_fname: gpw_v4_netcdf_contents_rev11.csv
 popdata_dpath: /nfs/a340/eebjs/hiadata/population_count/raw/
 popdata_fname: gpw_v4_population_count_rev11_2pt5_min.nc
 popdata_lookup_fname: gpw_v4_national_identifier_grid_rev11_lookup.txt
-population_year: 2002
-scenario_name: cesm_2002_fireoff
+popstruct_fpath: /nfs/a340/eebjs/hiadata/population_structure/IHME_GBD_2019_POP_2010_Y2020M10D15.CSV
+population_year: 2001
+regrid_to: pop
+scenario_name: cesm_2020_fireoff

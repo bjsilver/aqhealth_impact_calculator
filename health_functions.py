@@ -50,8 +50,7 @@ class gemm():
         elif uncert == 'upper':
             self.theta = self.theta + self.theta_se
             
-        
-        
+
     def calculate_hazard_ratio(self, pm25):
         """Relative risk calculation in GEMM
 

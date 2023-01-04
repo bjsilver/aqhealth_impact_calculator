@@ -7,8 +7,8 @@ Created on Thu Jan 20 16:12:33 2022
 """
 
 import pandas as pd 
-from regrid_population_count import load_popds
-from hia import config
+# from regrid_population_count import load_popds
+# fromhia import config
 from tqdm import tqdm
 import pickle
 import xarray as xr
@@ -16,6 +16,32 @@ import xarray as xr
 # get mapper for isocode to country name
 countries_lookup = pd.read_csv('./lookups/country_lookup.csv',
                                index_col='ISOCODE').squeeze('columns')
+
+
+
+def load_popds():
+
+    # open the netcdf contents description csv
+    contents = pd.read_csv('/nfs/a340/eebjs/hiadata/population_count/raw/gpw_v4_netcdf_contents_rev11.csv')
+    # keep the important rows
+    contents = contents.where(contents.file_name=='gpw_v4_population_count_rev11').dropna()
+    # increment index
+    contents.index = contents.index + 1
+
+    # open GPW population grid
+    popds = xr.open_dataset('/nfs/a340/eebjs/hiadata/population_count/raw/gpw_v4_population_count_rev11_2pt5_min.nc')
+
+    ds = xr.Dataset(
+                      coords=popds.drop_dims('raster').coords,
+                      attrs=popds.drop_dims('raster').attrs)
+
+    for rast in popds.raster.values:
+
+        da = popds['Population Count, v4.11 (2000, 2005, 2010, 2015, 2020): 2.5 arc-minutes'][rast-1]
+        da_name = contents.loc[rast, 'raster_name']
+        ds[da_name] = da.drop('raster')
+
+    return ds
 
 popds = load_popds()
 
@@ -49,7 +75,9 @@ for year in range(2000, 2021):
 
 # concatenate intepolated data into single dataset
 popds = xr.concat(das, dim='year')
-
+# save a copy
+popds.to_netcdf('/nfs/a340/eebjs/hiadata/population_count/interpolated/popcount.nc',
+                encoding={'count':{'zlib':True,'complevel':7}})
 
 #%% make slices for each year, country
     

@@ -9,10 +9,9 @@ Created on Tue Nov  9 09:22:34 2021
 
 import xarray as xr
 import pandas as pd
-import numpy as np
+# import numpy as np
 idx = pd.IndexSlice
 from hia import config
-from regrid_population_count import load_popds
 import pickle
 import health_functions
 
@@ -27,7 +26,7 @@ gbd_uncert = {'lower':'lower',
               'upper':'upper'}
 
 # load the common grid
-gridto = xr.open_dataset('./grids/common_grid.nc')
+gridto = xr.load_dataset('./grids/common_grid.nc')
 # drop the bound coordinates if present
 if 'lat_b' in gridto.coords:
     gridto = gridto.drop(['lat_b', 'lon_b'])
@@ -85,6 +84,26 @@ class PopulationData():
     def population_array(self, country_isocode):
         return self.popslices[country_isocode]
     
+    def get_countries_in(self, pm25):
+        # check if pollution data contains countries
+        countries_in = []
+        for isocode, popslice in self.popslices.items():
+            isin = any(popslice.longitude.isin(pm25.longitude)) & any(popslice.latitude.isin(pm25.latitude))
+            if isin:
+                countries_in.append(isocode)
+        return countries_in
+        
+#%%
+
+
+    
+
+    
+    
+
+
+#%%
+    
 
                 
 def hia_calculation():
@@ -92,41 +111,35 @@ def hia_calculation():
     ### LOAD DATA
     
     # depending on whether regridded to population of model data
-    if config['regrid_to'] == 'mod':
-        # then load regridded popcount/mask and raw model
+    # if config['regrid_to'] == 'mod':
+    #     # then load regridded popcount/mask and raw model
         
-        pm25 = xr.open_dataset(config['model_path'])
-        pm25 = pm25[config['pm25var_name']]
-        if 'time' in pm25.dims:
-            pm25 = pm25.mean('time')
-        # drop other coords 
-        if 'lev' in pm25.coords:
-            pm25 = pm25.drop('lev')
+    #     pm25 = xr.open_dataset(config['model_path'])
+    #     pm25 = pm25[config['pm25var_name']]
+    #     if 'time' in pm25.dims:
+    #         pm25 = pm25.mean('time')
+    #     # drop other coords 
+    #     if 'lev' in pm25.coords:
+    #         pm25 = pm25.drop('lev')
         
             
-        # load the country mask
-        countries = xr.open_dataset('./grids/country_mask.nc')['mask']
+    #     # load the country mask
+    #     countries = xr.open_dataset('./grids/country_mask.nc')['mask']
         
-    elif config['regrid_to'] == 'pop':
+    # elif config['regrid_to'] == 'pop':
         # then load raw popcount/mask and regridded model
         
-        popds = load_popds()
-        countries = popds['National Identifier Grid, v4.11 (2010): National Identifier Grid']
-        
-        pm25 = xr.open_dataset('./grids/model_regridded_'+\
-                               config['scenario_name']+'.nc')
-        pm25 = pm25[config['pm25var_name']]
-        if 'time' in pm25.dims:
-            pm25 = pm25.mean('time')
-        # drop other coords 
-        if 'lev' in pm25.coords:
-            pm25 = pm25.drop('lev')
-        
+    # countries = xr.open_dataset('./grids/country_mask.nc')['mask']
     
-
-    countries_lookup = pd.read_csv('./lookups/country_lookup.csv',
-                                   index_col='ISOCODE').squeeze('columns')
-
+    pm25 = xr.load_dataset('./grids/model_regridded_'+\
+                           config['scenario_name']+'.nc')
+    pm25 = pm25[config['pm25var_name']]
+    if 'time' in pm25.dims:
+        pm25 = pm25.mean('time')
+    # drop other coords 
+    if 'lev' in pm25.coords:
+        pm25 = pm25.drop('lev')
+        
     
 
 
@@ -143,13 +156,7 @@ def hia_calculation():
     
     ### MAKE ITERABLES
 
-    # get a list of countries in the country mask
-    # crop to pm25 array
-    countries = countries.where(pm25)
-    country_codes = np.unique(countries)
-    country_codes = country_codes[country_codes < 1000] # remove NaN code
-    countries_in = countries_lookup[countries_lookup.isin(country_codes)].index
-    # get list of causes in GEMM
+    
     causes = HealthFunc.causes
     # get list of age ranges
     age_groups = HealthFunc.age_groups
@@ -160,6 +167,10 @@ def hia_calculation():
     # instatiate datasets
     bhd = BaseLineHealthData(config)
     popdata = PopulationData(year=config['population_year'])
+    
+    # get a list of countries in the country mask
+    # crop to pm25 array
+    countries_in = popdata.get_countries_in(pm25)
     
 
     ### ITERATE THROUGH HIA
@@ -174,7 +185,7 @@ def hia_calculation():
     # make ds to save gridded results in
     ds = gridto.copy()
             
-    for cause in causes:
+    for cause in causes:#['Non-accidental function (Non-Communicable + LRI deaths)']:
         print(cause+':')
         
         uncerts = []

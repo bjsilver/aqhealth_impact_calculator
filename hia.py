@@ -7,13 +7,19 @@ Created on Mon Nov 22 13:34:36 2021
 """
 
 import yaml
-import os
 import sys
 
-config = yaml.safe_load('./config.yaml')
+
+with open('./config.yaml', 'r') as stream:
+    config = yaml.safe_load(stream)
+
+
 
 
 def hia():
+    
+    with open('./config.yaml', 'r') as stream:
+        config = yaml.safe_load(stream)
     
     print('Starting health impact assessment for:', config['scenario_name'])    
     
@@ -25,16 +31,20 @@ def hia():
     
     #%% 2. regrid population or model data to common grid
     print('2: regridding population data')
-    from regrid_model_to_popcount import regrid_model_to_popcount
-    regrid_model_to_popcount()
+    from regrid_model import regrid_model
+    regrid_model()
     print('')
     
     #%% perform HIA
     print('3. Health Impact assessment')
-    from hia_calculation import hia_calculation
+    from hia_calculation_parallel import hia_calculation
     hia_calculation()
     print('')
 
 if __name__ == "__main__":
-    config = yaml.safe_load(open(sys.argv[1]))
+    # config = yaml.safe_load()
+    with open(sys.argv[1], 'r') as stream:
+        config = yaml.safe_load(stream)
+    with open('./config.yaml', 'w') as output:
+        yaml.safe_dump(config, output)
     hia()
