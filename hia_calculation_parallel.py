@@ -17,7 +17,8 @@ import health_functions
 import multiprocessing as mp
 from itertools import product
 from tqdm import tqdm
-
+from pyproj import Geod
+from shapely.geometry import LineString, Point, Polygon
 
 
 # use the correct hazard function
@@ -33,6 +34,40 @@ gridto = xr.load_dataset('./grids/common_grid.nc')
 # drop the bound coordinates if present
 if 'lat_b' in gridto.coords:
     gridto = gridto.drop(['lat_b', 'lon_b'])
+
+def get_latlon_areas(latcentres, loncentres, latres, lonres):
+
+    geod = Geod(ellps="WGS84")
+    
+    areas = pd.Series(dtype=float, index=latcentres)
+    for clat in latcentres:
+        # get bounds from coords
+        lat_south, lat_north = clat - latres/2, clat + latres/2
+        lon_west, lon_east = 0 - lonres/2, 0 + lonres/2
+
+        # create polygon
+        poly = Polygon(
+
+               LineString([
+                   Point(lon_east, lat_south),
+                   Point(lon_east, lat_north),
+                   Point(lon_west, lat_north),
+                   Point(lon_west, lat_south)
+                   ])
+
+            )
+
+        area, _ = geod.geometry_area_perimeter(poly)
+        areas.loc[clat] = area
+        
+    da = xr.DataArray(areas, dims={'latitude':latcentres})
+    da = da.expand_dims({'longitude':loncentres})
+
+    return da
+
+area_weights = get_latlon_areas(gridto.latitude.values,
+                                gridto.longitude.values,
+                                latres=2.5/60, lonres=2.5/60)
     
 # load ISO code mapper for WHO country names
 isomap = pd.read_csv('./lookups/WHO_country_isocode_mapper.csv',
@@ -239,11 +274,11 @@ def hia_calculation():
         
         popslice = popdata.population_array(country_isocode)
         pm25slice = pm25.where(popslice)
-        results.loc[country_isocode, 'mean PM2.5'] = pm25slice.mean()
+        results.loc[country_isocode, 'mean PM2.5'] = pm25slice.weighted(area_weights.loc[pm25slice.coords]).mean()
         # slice popslice to pm25slice in case pm25 data doesn't cover entire country
         popslice = popslice.where(pm25slice)
         results.loc[country_isocode, 'population (within model area)'] = int(popslice.sum())
-        popweighted = ((pm25slice * popslice) / popslice.sum()).sum()
+        popweighted = pm25slice.weighted(popslice).mean()
         results.loc[country_isocode, 'population-weighted PM2.5'] = float(popweighted)
         
     results.to_csv('./results/'+config['scenario_name']+'/by_country_results.csv')
