@@ -97,6 +97,6 @@ parameter in the config file. Each results directory should contain:
 * by_country_results.csv
 * by_country_age-group_uncertainty_results.csv  
 * gridded_results.nc
-* [scnario_name].yml (a copy of the config file)
+* [scenario_name].yml (a copy of the config file)
 
 [^1]: I doubt it's going to work though good luck
