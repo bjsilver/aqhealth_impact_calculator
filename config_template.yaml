@@ -1,0 +1,22 @@
+# path to baseline health data
+bh_fpath: path/to/e.g./IHME-GBD_2019_DATA-31c9bf16-1.csv
+# which health function to use (currently only GEMM)
+hazard_ratio_function: gemm
+# whether to use the including or excluding China GEMM function
+gemm_include_china: IN
+# name of latitude coordinate
+latname: lat
+# name of longitude coordinate
+lonname: lon
+# path to netcdf of model data
+model_path: /path/to/e.g./pm25_model_data.nc
+# name of PM2.5 variable within netcdf
+pm25var_name: pm25
+# directory containing gridded population data
+popdata_dpath: /e.g./population/data/
+# name of population data file to regrid to
+popdata_fname: gpw_v4_population_count_rev11_2pt5_min.nc
+# year of population to use
+population_year: 2001
+# name of scenario (will be name of result directory)
+scenario_name: my_health_impact_scenario

@@ -7,16 +7,13 @@ Created on Thu Jan 20 16:12:33 2022
 """
 
 import pandas as pd 
-# from regrid_population_count import load_popds
-# fromhia import config
 from tqdm import tqdm
 import pickle
 import xarray as xr
 
 # get mapper for isocode to country name
-countries_lookup = pd.read_csv('./lookups/country_lookup.csv',
+countries_lookup = pd.read_csv('../lookups/country_lookup.csv',
                                index_col='ISOCODE').squeeze('columns')
-
 
 
 def load_popds():
@@ -47,7 +44,7 @@ popds = load_popds()
 
 countries = popds['National Identifier Grid, v4.11 (2010): National Identifier Grid']
 
-#%% load the 5-yearly population data for 2000 to 2020
+#%% get the 5-yearly population data for 2000 to 2020
 das = []
 for year in list(range(2000,2025,5)):
     
@@ -56,36 +53,24 @@ for year in list(range(2000,2025,5)):
         
     das.append(da)
 
-
-
 #%% create a dataset to store the results
-popds = xr.concat(das, dim='year')
-popds = popds.assign_coords({'year':list(range(2000,2025,5))})
+popda = xr.concat(das, dim='year')
+popda = popda.assign_coords({'year':pd.date_range('2000-01-01', '2021-01-01', freq='5YS')})
 
 #%% interpolate for every year
 
-das = []
-for year in range(2000, 2021):
-    print('interpolating', year)
-    if year in popds.year: # do not interpolate if year already in dataset
-        da = popds.loc[{'year':year}]
-    else:
-        da = popds.interp({'year':year}) # interpolate
-    das.append(da)
-
-# concatenate intepolated data into single dataset
-popds = xr.concat(das, dim='year')
+popda = popda.resample({'year':'YS'}).interpolate()
 # save a copy
-popds.to_netcdf('/nfs/a340/eebjs/hiadata/population_count/interpolated/popcount.nc',
+popda.to_netcdf('/nfs/a340/eebjs/hiadata/population_count/interpolated/popcount.nc',
                 encoding={'count':{'zlib':True,'complevel':7}})
 
 #%% make slices for each year, country
     
-for year in range(2000, 2021):
+for year in popda.year:
 
     print('making popslices', year)
 
-    popcount = popds.loc[{'year':year}]
+    popcount = popda.loc[{'year':year}]
         
     das = {} #store slices in this dictonary
     for country_isocode in tqdm(countries_lookup.index):
@@ -106,6 +91,6 @@ for year in range(2000, 2021):
         das[country_isocode] = country_popda
     
     # pickle the dictionary
-    with open(f'./grids/pop_count_slices_{year}.P', 'wb') as handle:
+    with open(f'./grids/pop_count_slices_{pd.to_datetime(year.values).year}.P', 'wb') as handle:
         pickle.dump(das, handle, protocol=pickle.HIGHEST_PROTOCOL)
 

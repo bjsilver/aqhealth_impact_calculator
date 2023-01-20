@@ -29,7 +29,7 @@ class gemm():
     gemm_params = gemm_params.sort_index()
     
     # exclude or include china (IN or EX)
-    gemm_params = gemm_params.loc['All-regions, '+config['include_china']+'cluding China']
+    gemm_params = gemm_params.loc['All-regions, '+config['gemm_include_china']+'cluding China']
     
     # create iterators for age groups and causes
     causes = gemm_params.index.get_level_values('cause').unique()

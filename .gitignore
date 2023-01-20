@@ -1,6 +1,17 @@
-lookups/
 results/*
+results*/
 uncertainties/
 grids/
+*.bash
+*.csv
+
+# include some lookups
+lookups/age_structure*
+!lookups/gemm_parameters.csv
+!lookups/WHO_country_isocode_mapper.csv
+!lookups/country_lookup.csv
+
+# ignore the user's config file
+config.yaml
 
 __pycache__/

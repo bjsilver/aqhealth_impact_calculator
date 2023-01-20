@@ -38,7 +38,7 @@ for year in range(2001, 2020):
     
     mindex = pd.MultiIndex.from_product([uncertainties, age_groups, mapper.values],
                                         names=['uncertainty', 'age_group_name', 'country_isocode'])
-    results = pd.DataFrame(index=mindex)
+  
     
     srs = []
     for location_id in mapper.index:
@@ -50,6 +50,7 @@ for year in range(2001, 2020):
         cdf = df.loc[df['location_id'] == location_id]
         cdf = cdf[cdf['age_group_name'].isin(age_groups)]
         cdf = cdf[['age_group_name', 'val','upper','lower']].set_index('age_group_name').stack()
+        cdf.index = cdf.index.set_names('uncertainty', level=1)
         
         # divide by total population
         cdf = cdf / total_population
@@ -58,5 +59,5 @@ for year in range(2001, 2020):
         srs.append(sr)
         
         
-    df = pd.concat(srs)
-    df.to_pickle(f'../lookups/age_structure_{year}.P')
+    age_structures = pd.concat(srs)
+    age_structures.to_pickle(f'../lookups/age_structure_{year}.P')

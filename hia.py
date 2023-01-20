@@ -6,15 +6,15 @@ Created on Mon Nov 22 13:34:36 2021
 @author: eebjs
 """
 
+import os
 import yaml
 import sys
 
+if not os.path.exists('./config.yaml'):
+    raise IOError('Missing config file \'config.yaml\'. Create one based on config_template.yaml')
 
 with open('./config.yaml', 'r') as stream:
     config = yaml.safe_load(stream)
-
-
-
 
 def hia():
     
