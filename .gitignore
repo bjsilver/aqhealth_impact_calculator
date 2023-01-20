@@ -1,10 +1,11 @@
-lookups/
 results/*
 results*/
 uncertainties/
 grids/
 *.bash
 *.csv
+
+lookups/age_structure*
 
 # ignore the user's config file
 config.yaml
