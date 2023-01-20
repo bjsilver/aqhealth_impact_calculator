@@ -87,7 +87,7 @@ of the IHME data OR the `BaseLineHealthData` class should be rewritten.
 
 ## Running the code
 First create a copy of the `config_template.yaml` and replace the settings/paths
-with your own. Then the HIA should be submitted by running `hia.py`[1].
+with your own. Then the HIA should be submitted by running `hia.py`[^1].
 
 The code will first create a common grid based on the gridded population data
 Then it will calculate the health impact for each country, age group, cause, and uncertainty level.
