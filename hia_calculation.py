@@ -14,6 +14,9 @@ idx = pd.IndexSlice
 from hia import config
 import pickle
 import health_functions
+import multiprocessing as mp
+from itertools import product
+from tqdm import tqdm
 
 
 
@@ -30,6 +33,11 @@ gridto = xr.load_dataset('./grids/common_grid.nc')
 # drop the bound coordinates if present
 if 'lat_b' in gridto.coords:
     gridto = gridto.drop(['lat_b', 'lon_b'])
+    
+# load ISO code mapper for WHO country names
+isomap = pd.read_csv('./lookups/WHO_country_isocode_mapper.csv',
+                     index_col=1).squeeze('columns')
+
 
 class BaseLineHealthData:
     
@@ -93,66 +101,76 @@ class PopulationData():
                 countries_in.append(isocode)
         return countries_in
         
-#%%
+
+# instatiate datasets
+bhd = BaseLineHealthData(config)
+popdata = PopulationData(year=config['population_year'])
 
 
+pm25 = xr.load_dataset('./grids/model_regridded_'+\
+                       config['scenario_name']+'.nc')
+pm25 = pm25[config['pm25var_name']]
+if 'time' in pm25.dims:
+    pm25 = pm25.mean('time')
+# drop other coords 
+if 'lev' in pm25.coords:
+    pm25 = pm25.drop('lev')
     
+# get a list of countries in the country mask
+# crop to pm25 array
+countries_in = popdata.get_countries_in(pm25)
 
+
+
+def hiacalc(args):
     
+    cause, uncert, age_group = args
     
+    # print(cause, uncert, age_group)
+    
+    sr = pd.Series(index=pd.MultiIndex.from_product([countries_in, [age_group], [uncert]]),
+                 name=cause, dtype=float)
+                
+    # get instance of health function for cause, age_group and uncert
+    healthfunc = HealthFunc(cause=cause, age_group=age_group, uncert=uncert)
+    hazard_ratio = healthfunc.calculate_hazard_ratio(pm25)
+    
+    da = xr.DataArray(.0, coords=gridto.coords, name=cause)
+    
+    for country_isocode in countries_in:
+        if country_isocode not in isomap.index:
+            continue
+    
+        
+        baseline_deaths = bhd.lookup(country_isocode=country_isocode,
+                                     cause=cause, 
+                                     age_group=age_group, 
+                                     measure='Deaths', 
+                                     uncert=uncert)
+        
 
+        # get age group population
+        age_group_pop = popdata.lookup(country_isocode, age_group, uncert)
+     
+        hazard_ratio_slice = hazard_ratio.where(age_group_pop)
+        # calculate mortality rate from hazard ratio
+        mortality_rate = (1 - 1 / hazard_ratio_slice) * baseline_deaths
+        
+        # calculate premature mortalities
+        deaths = mortality_rate * age_group_pop / 100000
+        deaths = deaths.where(deaths>0, 0)
+        
+        da.loc[deaths.coords] += deaths.values
+        sr.loc[country_isocode, age_group, uncert] = float(deaths.sum())
+        
+    da = da.expand_dims({'uncert':[uncert], 'age_group':[age_group]})
 
-#%%
+    return da, sr
     
 
                 
 def hia_calculation():
-    
-    ### LOAD DATA
-    
-    # depending on whether regridded to population of model data
-    # if config['regrid_to'] == 'mod':
-    #     # then load regridded popcount/mask and raw model
-        
-    #     pm25 = xr.open_dataset(config['model_path'])
-    #     pm25 = pm25[config['pm25var_name']]
-    #     if 'time' in pm25.dims:
-    #         pm25 = pm25.mean('time')
-    #     # drop other coords 
-    #     if 'lev' in pm25.coords:
-    #         pm25 = pm25.drop('lev')
-        
-            
-    #     # load the country mask
-    #     countries = xr.open_dataset('./grids/country_mask.nc')['mask']
-        
-    # elif config['regrid_to'] == 'pop':
-        # then load raw popcount/mask and regridded model
-        
-    # countries = xr.open_dataset('./grids/country_mask.nc')['mask']
-    
-    pm25 = xr.load_dataset('./grids/model_regridded_'+\
-                           config['scenario_name']+'.nc')
-    pm25 = pm25[config['pm25var_name']]
-    if 'time' in pm25.dims:
-        pm25 = pm25.mean('time')
-    # drop other coords 
-    if 'lev' in pm25.coords:
-        pm25 = pm25.drop('lev')
-        
-    
 
-
-    
-    # load ISO code mapper for WHO country names
-    isomap = pd.read_csv('./lookups/WHO_country_isocode_mapper.csv',
-                         index_col=1).squeeze('columns')
-    
-    
-
-    # other health functions could be added later like...
-    # elif config['hazard_ratio_function'] == 'gbd2019':
-        # from health_functions.gemm import GBD2019_Function as HealthFunc
     
     ### MAKE ITERABLES
 
@@ -162,94 +180,43 @@ def hia_calculation():
     age_groups = HealthFunc.age_groups
     # get an iterable of uncertainty
     uncertainties = ['lower', 'mid', 'upper']
-    # uncertainties = ['mid'] # just one for testing
     
-    # instatiate datasets
-    bhd = BaseLineHealthData(config)
-    popdata = PopulationData(year=config['population_year'])
     
-    # get a list of countries in the country mask
-    # crop to pm25 array
-    countries_in = popdata.get_countries_in(pm25)
-    
-
-    ### ITERATE THROUGH HIA
-
-    # create a dataframe to store results
-    mindex = pd.MultiIndex.from_product([countries_in, age_groups, uncertainties],
-                                        names=['country', 'age_group', 'uncertainty'])
-    results = pd.DataFrame(index=mindex, 
-                           columns=list(causes))
-    results = results.sort_index() # sort for faster indexing
-
-    # make ds to save gridded results in
-    ds = gridto.copy()
-            
-    for cause in causes:#['Non-accidental function (Non-Communicable + LRI deaths)']:
-        print(cause+':')
+    with mp.Pool(mp.cpu_count()-2) as pool:
+        fargs = list(product(causes, uncertainties, age_groups))
+        outs = []
+        for out in tqdm(pool.imap_unordered(hiacalc, fargs), total=len(fargs)):
+            outs.append(out)
         
-        uncerts = []
+    # unpack results
+    das, srs = map(list, zip(*outs)) 
+
+    # combine gridded results
+    mdas = []
+    for cause in causes:
+        cdas = [da for da in das if da.name == cause]
+        das_summed = []
         for uncert in uncertainties:
-            print(uncert, end=' ')
-        # country_deaths list
-            age_das = []
-            for age_group in age_groups:
-                print(age_group, end=' ')
-            
-            
-                    
-                # get instance of health function for cause, age_group and uncert
-                healthfunc = HealthFunc(cause=cause, age_group=age_group, uncert=uncert)
-                hazard_ratio = healthfunc.calculate_hazard_ratio(pm25)
-                
-                age_da = xr.DataArray(name=age_group, coords=gridto.coords)
-                age_da[:,:] = 0
-                
-                for country_isocode in countries_in:
-                    if country_isocode not in isomap.index:
-                        # print('skipping', country_isocode, 'due to no data')
-                        continue
-                    
-                    # print(country_isocode)
-                    # get baseline death rate
-                    
-                    baseline_deaths = bhd.lookup(country_isocode=country_isocode,
-                                                 cause=cause, 
-                                                 age_group=age_group, 
-                                                 measure='Deaths', 
-                                                 uncert=uncert)
-                    
-          
-                    # get age group population
-                    age_group_pop = popdata.lookup(country_isocode, age_group, uncert)
-                 
-                    hazard_ratio_slice = hazard_ratio.where(age_group_pop)
-                    # calculate mortality rate from hazard ratio
-                    mortality_rate = (1 - 1 / hazard_ratio_slice) * baseline_deaths
-                    
-                    # calculate premature mortalities
-                    deaths = mortality_rate * age_group_pop / 100000
-                    
-                    age_da.loc[deaths.coords] += deaths.values
-                    
-                    results.loc[idx[country_isocode, age_group, uncert], cause] = float(deaths.sum())
-                    
-                age_das.append(age_da)
-                
-            # sum across age groups
-            deaths_summed = sum(age_das)
-            
-            # add uncertainty dimension
-            deaths_summed = deaths_summed.expand_dims({'uncert':[uncert]})
-            uncerts.append(deaths_summed)
-            print(' ✓')
+            udas = [da.drop('uncert') for da in cdas if da.uncert == uncert]
+            udas_sum = sum([da.values[0] for da in udas])
+            da = xr.DataArray(udas_sum, coords={'uncert':[uncert], 'latitude':gridto.latitude, 'longitude':gridto.longitude})
+            das_summed.append(da)
+        uda = xr.concat(das_summed, dim='uncert')
+        uda.name = cause
+        mdas.append(uda)
         
-        da = xr.concat(uncerts, dim='uncert')
-        ds[cause] = da
-        print('\n')
-        
-    ds.to_netcdf('./results/'+config['scenario_name']+'/gridded_results.nc')
-        
+    ds = xr.merge(mdas)
+    comp = dict(zlib=True, complevel=5)
+    encoding = {var: comp for var in ds.data_vars}
+    ds.to_netcdf('./results/'+config['scenario_name']+'/gridded_results.nc', encoding=encoding)
+            
+
+    msrs = []
+    for cause in causes:
+        csrs = [sr for sr in srs if sr.name == cause]
+        msrs.append(pd.concat(csrs).sort_index())
+    results = pd.concat(msrs, axis=1)
+    results.index.names = ['country', 'age_group', 'uncertainty']
     
     results.to_csv('./results/'+config['scenario_name']+'/by_country_age-group_uncertainty_results.csv')
     print('./results/'+config['scenario_name']+'/by_country_results.csv')
@@ -272,6 +239,7 @@ def hia_calculation():
         
         popslice = popdata.population_array(country_isocode)
         pm25slice = pm25.where(popslice)
+        results.loc[country_isocode, 'mean PM2.5'] = pm25slice.mean()
         # slice popslice to pm25slice in case pm25 data doesn't cover entire country
         popslice = popslice.where(pm25slice)
         results.loc[country_isocode, 'population (within model area)'] = int(popslice.sum())
@@ -279,8 +247,6 @@ def hia_calculation():
         results.loc[country_isocode, 'population-weighted PM2.5'] = float(popweighted)
         
     results.to_csv('./results/'+config['scenario_name']+'/by_country_results.csv')
-        
-        
     
 #%%
 
