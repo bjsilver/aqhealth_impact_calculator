@@ -3,4 +3,7 @@ results/*
 uncertainties/
 grids/
 
+# ignore the user's config file
+config.yaml
+
 __pycache__/
