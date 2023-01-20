@@ -21,7 +21,7 @@ Download the gridded population data, baseline health data and age structure dat
 
 ### Make population count slices
 For the GPWv4 data, a utility script (`./utils/make_popslices.py`) has been written.
-If using other data, you will need to make these files.
+If using other gridded population data, you will need to make these files/edit the script.
 
 For each year you wish to include in the analysis, there needs to be a pickled
 dictionary of population count slices in the grids directory 
@@ -29,7 +29,7 @@ dictionary of population count slices in the grids directory
 
 The dictionary keys should be the 3 letter isocode for each country,
 and the value should be a DataArray of population count for that country
-with surrounding grids as zeroes. E.g.
+with surrounding grids as zeroes e.g.
 
 ```
 {'CHN': <xarray.DataArray 'CHN' (latitude: 860, longitude: 1469)>
@@ -50,3 +50,29 @@ with surrounding grids as zeroes. E.g.
      max:        [9.63072875e+05 1.00347762e+06 1.13291988e+06 1.34768400e+06\...}
 ```
 
+### Make age structure lookup
+For the IHME age structure data a utility script (`./utils/make_age_structures.py`) has been written.
+If using other age structyre data, you will need to make these files/edit the script.
+
+For the `PopulationData` class to be able to read in the age structure, it should
+be in the format of a pickled pandas dataframe saved at `./lookups/age_structure_YYYY.P`
+
+The dataframe should have a 3 level MultiIndex of 3 letter country isocode, age group,
+and uncertainty level, with each value the proportion that the age group makes up in
+the country's population, e.g.
+
+```
+country_isocode  age_group_name  uncertainty
+ARM              25-29           val            0.078126
+                                 upper          0.084380
+                                 lower          0.072182
+                 30-34           val            0.068297
+                                 upper          0.073765
+  
+STP              75-79           upper          0.009699
+                                 lower          0.008232
+                 80+             val            0.008063
+                                 upper          0.008764
+                                 lower          0.007438
+Length: 7344, dtype: float64
+```
