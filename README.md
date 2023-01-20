@@ -76,3 +76,27 @@ STP              75-79           upper          0.009699
                                  lower          0.007438
 Length: 7344, dtype: float64
 ```
+
+### Baseline health data
+The code is currently written to run with the IHME baseline health data.
+In the `hia_calculation.py` script, the class `BaseLineHealthData` is used to
+read in the raw IHME csv as from the path defined in the config file parameter `bh_fpath`.
+
+If using other baseline health data, it should be transformed to match the format
+of the IHME data OR the `BaseLineHealthData` class should be rewritten.
+
+## Running the code
+First create a copy of the `config_template.yaml` and replace the settings/paths
+with your own. Then the HIA should be submitted by running `hia.py`[1].
+
+The code will first create a common grid based on the gridded population data
+Then it will calculate the health impact for each country, age group, cause, and uncertainty level.
+
+The results will be saved in a directory named according to the `scenario_name`
+parameter in the config file. Each results directory should contain:
+* by_country_results.csv
+* by_country_age-group_uncertainty_results.csv  
+* gridded_results.nc
+* [scnario_name].yml (a copy of the config file)
+
+[^1]: I doubt it's going to work though good luck
