@@ -1,7 +1,10 @@
 lookups/
 results/*
+results*/
 uncertainties/
 grids/
+*.bash
+*.csv
 
 # ignore the user's config file
 config.yaml
