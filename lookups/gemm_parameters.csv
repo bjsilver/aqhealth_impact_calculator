@@ -1,0 +1,145 @@
+includes_china?,cause,age_group,theta,theta_se,alpha,mu,tau
+"All-regions, INcluding China",Non-accidental function (Non-Communicable + LRI deaths),25-29,0.1585,0.01477,1.6,15.5,36.8
+"All-regions, INcluding China",Non-accidental function (Non-Communicable + LRI deaths),30-34,0.1577,0.0147,1.6,15.5,36.8
+"All-regions, INcluding China",Non-accidental function (Non-Communicable + LRI deaths),35-39,0.157,0.01463,1.6,15.5,36.8
+"All-regions, INcluding China",Non-accidental function (Non-Communicable + LRI deaths),40-44,0.1558,0.0145,1.6,15.5,36.8
+"All-regions, INcluding China",Non-accidental function (Non-Communicable + LRI deaths),45-49,0.1532,0.01425,1.6,15.5,36.8
+"All-regions, INcluding China",Non-accidental function (Non-Communicable + LRI deaths),50-54,0.1499,0.01394,1.6,15.5,36.8
+"All-regions, INcluding China",Non-accidental function (Non-Communicable + LRI deaths),55-59,0.1462,0.01361,1.6,15.5,36.8
+"All-regions, INcluding China",Non-accidental function (Non-Communicable + LRI deaths),60-64,0.1421,0.01325,1.6,15.5,36.8
+"All-regions, INcluding China",Non-accidental function (Non-Communicable + LRI deaths),65-69,0.1374,0.01284,1.6,15.5,36.8
+"All-regions, INcluding China",Non-accidental function (Non-Communicable + LRI deaths),70-74,0.1319,0.01234,1.6,15.5,36.8
+"All-regions, INcluding China",Non-accidental function (Non-Communicable + LRI deaths),75-79,0.1253,0.01174,1.6,15.5,36.8
+"All-regions, INcluding China",Non-accidental function (Non-Communicable + LRI deaths),80+,0.1141,0.01071,1.6,15.5,36.8
+"All-regions, INcluding China",Ischaemic Heart Disease,25-29,0.507,0.02458,1.9,12.0,40.2
+"All-regions, INcluding China",Ischaemic Heart Disease,30-34,0.4762,0.02309,1.9,12.0,40.2
+"All-regions, INcluding China",Ischaemic Heart Disease,35-39,0.4455,0.0216,1.9,12.0,40.2
+"All-regions, INcluding China",Ischaemic Heart Disease,40-44,0.4148,0.02011,1.9,12.0,40.2
+"All-regions, INcluding China",Ischaemic Heart Disease,45-49,0.3841,0.01862,1.9,12.0,40.2
+"All-regions, INcluding China",Ischaemic Heart Disease,50-54,0.3533,0.01713,1.9,12.0,40.2
+"All-regions, INcluding China",Ischaemic Heart Disease,55-59,0.3226,0.01564,1.9,12.0,40.2
+"All-regions, INcluding China",Ischaemic Heart Disease,60-64,0.2919,0.01415,1.9,12.0,40.2
+"All-regions, INcluding China",Ischaemic Heart Disease,65-69,0.2612,0.01266,1.9,12.0,40.2
+"All-regions, INcluding China",Ischaemic Heart Disease,70-74,0.2304,0.01117,1.9,12.0,40.2
+"All-regions, INcluding China",Ischaemic Heart Disease,75-79,0.1997,0.00968,1.9,12.0,40.2
+"All-regions, INcluding China",Ischaemic Heart Disease,80+,0.1536,0.00745,1.9,12.0,40.2
+"All-regions, INcluding China",Strokes,25-29,0.4513,0.11919,6.2,16.7,23.7
+"All-regions, INcluding China",Strokes,30-34,0.424,0.11197,6.2,16.7,23.7
+"All-regions, INcluding China",Strokes,35-39,0.3966,0.10475,6.2,16.7,23.7
+"All-regions, INcluding China",Strokes,40-44,0.3693,0.09752,6.2,16.7,23.7
+"All-regions, INcluding China",Strokes,45-49,0.3419,0.0903,6.2,16.7,23.7
+"All-regions, INcluding China",Strokes,50-54,0.3146,0.08307,6.2,16.7,23.7
+"All-regions, INcluding China",Strokes,55-59,0.2872,0.07585,6.2,16.7,23.7
+"All-regions, INcluding China",Strokes,60-64,0.2598,0.06863,6.2,16.7,23.7
+"All-regions, INcluding China",Strokes,65-69,0.2325,0.0619,6.2,16.7,23.7
+"All-regions, INcluding China",Strokes,70-74,0.2051,0.05418,6.2,16.7,23.7
+"All-regions, INcluding China",Strokes,75-79,0.1778,0.04695,6.2,16.7,23.7
+"All-regions, INcluding China",Strokes,80+,0.1368,0.03611,6.2,16.7,23.7
+"All-regions, INcluding China",Chronic Obstructive Pulomonary Disease,25-29,0.251,0.06762,6.5,2.5,32.0
+"All-regions, INcluding China",Chronic Obstructive Pulomonary Disease,30-34,0.251,0.06762,6.5,2.5,32.0
+"All-regions, INcluding China",Chronic Obstructive Pulomonary Disease,35-39,0.251,0.06762,6.5,2.5,32.0
+"All-regions, INcluding China",Chronic Obstructive Pulomonary Disease,40-44,0.251,0.06762,6.5,2.5,32.0
+"All-regions, INcluding China",Chronic Obstructive Pulomonary Disease,45-49,0.251,0.06762,6.5,2.5,32.0
+"All-regions, INcluding China",Chronic Obstructive Pulomonary Disease,50-54,0.251,0.06762,6.5,2.5,32.0
+"All-regions, INcluding China",Chronic Obstructive Pulomonary Disease,55-59,0.251,0.06762,6.5,2.5,32.0
+"All-regions, INcluding China",Chronic Obstructive Pulomonary Disease,60-64,0.251,0.06762,6.5,2.5,32.0
+"All-regions, INcluding China",Chronic Obstructive Pulomonary Disease,65-69,0.251,0.06762,6.5,2.5,32.0
+"All-regions, INcluding China",Chronic Obstructive Pulomonary Disease,70-74,0.251,0.06762,6.5,2.5,32.0
+"All-regions, INcluding China",Chronic Obstructive Pulomonary Disease,75-79,0.251,0.06762,6.5,2.5,32.0
+"All-regions, INcluding China",Chronic Obstructive Pulomonary Disease,80+,0.251,0.06762,6.5,2.5,32.0
+"All-regions, INcluding China",Lung Cancer,25-29,0.2942,0.06147,6.2,9.3,29.8
+"All-regions, INcluding China",Lung Cancer,30-34,0.2942,0.06147,6.2,9.3,29.8
+"All-regions, INcluding China",Lung Cancer,35-39,0.2942,0.06147,6.2,9.3,29.8
+"All-regions, INcluding China",Lung Cancer,40-44,0.2942,0.06147,6.2,9.3,29.8
+"All-regions, INcluding China",Lung Cancer,45-49,0.2942,0.06147,6.2,9.3,29.8
+"All-regions, INcluding China",Lung Cancer,50-54,0.2942,0.06147,6.2,9.3,29.8
+"All-regions, INcluding China",Lung Cancer,55-59,0.2942,0.06147,6.2,9.3,29.8
+"All-regions, INcluding China",Lung Cancer,60-64,0.2942,0.06147,6.2,9.3,29.8
+"All-regions, INcluding China",Lung Cancer,65-69,0.2942,0.06147,6.2,9.3,29.8
+"All-regions, INcluding China",Lung Cancer,70-74,0.2942,0.06147,6.2,9.3,29.8
+"All-regions, INcluding China",Lung Cancer,75-79,0.2942,0.06147,6.2,9.3,29.8
+"All-regions, INcluding China",Lung Cancer,80+,0.2942,0.06147,6.2,9.3,29.8
+"All-regions, INcluding China",Lower Respiratory Infections,25-29,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, INcluding China",Lower Respiratory Infections,30-34,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, INcluding China",Lower Respiratory Infections,35-39,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, INcluding China",Lower Respiratory Infections,40-44,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, INcluding China",Lower Respiratory Infections,45-49,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, INcluding China",Lower Respiratory Infections,50-54,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, INcluding China",Lower Respiratory Infections,55-59,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, INcluding China",Lower Respiratory Infections,60-64,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, INcluding China",Lower Respiratory Infections,65-69,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, INcluding China",Lower Respiratory Infections,70-74,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, INcluding China",Lower Respiratory Infections,75-79,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, INcluding China",Lower Respiratory Infections,80+,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, EXcluding China",Non-accidental function (Non-Communicable + LRI deaths),25-29,0.1358,0.01326,1.5,10.4,25.9
+"All-regions, EXcluding China",Non-accidental function (Non-Communicable + LRI deaths),30-34,0.1353,0.01321,1.5,10.4,25.9
+"All-regions, EXcluding China",Non-accidental function (Non-Communicable + LRI deaths),35-39,0.1348,0.01315,1.5,10.4,25.9
+"All-regions, EXcluding China",Non-accidental function (Non-Communicable + LRI deaths),40-44,0.1338,0.01304,1.5,10.4,25.9
+"All-regions, EXcluding China",Non-accidental function (Non-Communicable + LRI deaths),45-49,0.1317,0.01283,1.5,10.4,25.9
+"All-regions, EXcluding China",Non-accidental function (Non-Communicable + LRI deaths),50-54,0.1288,0.01255,1.5,10.4,25.9
+"All-regions, EXcluding China",Non-accidental function (Non-Communicable + LRI deaths),55-59,0.1256,0.01225,1.5,10.4,25.9
+"All-regions, EXcluding China",Non-accidental function (Non-Communicable + LRI deaths),60-64,0.1221,0.01194,1.5,10.4,25.9
+"All-regions, EXcluding China",Non-accidental function (Non-Communicable + LRI deaths),65-69,0.1181,0.01157,1.5,10.4,25.9
+"All-regions, EXcluding China",Non-accidental function (Non-Communicable + LRI deaths),70-74,0.1133,0.01112,1.5,10.4,25.9
+"All-regions, EXcluding China",Non-accidental function (Non-Communicable + LRI deaths),75-79,0.1077,0.01058,1.5,10.4,25.9
+"All-regions, EXcluding China",Non-accidental function (Non-Communicable + LRI deaths),80+,0.0979,0.00964,1.5,10.4,25.9
+"All-regions, EXcluding China",Ischaemic Heart Disease,25-29,0.3996,0.03016,4.9,-21.1,17.7
+"All-regions, EXcluding China",Ischaemic Heart Disease,30-34,0.3796,0.02834,4.9,-21.1,17.7
+"All-regions, EXcluding China",Ischaemic Heart Disease,35-39,0.3512,0.02651,4.9,-21.1,17.7
+"All-regions, EXcluding China",Ischaemic Heart Disease,40-44,0.327,0.02468,4.9,-21.1,17.7
+"All-regions, EXcluding China",Ischaemic Heart Disease,45-49,0.3027,0.02285,4.9,-21.1,17.7
+"All-regions, EXcluding China",Ischaemic Heart Disease,50-54,0.2785,0.02103,4.9,-21.1,17.7
+"All-regions, EXcluding China",Ischaemic Heart Disease,55-59,0.2543,0.0192,4.9,-21.1,17.7
+"All-regions, EXcluding China",Ischaemic Heart Disease,60-64,0.2301,0.01737,4.9,-21.1,17.7
+"All-regions, EXcluding China",Ischaemic Heart Disease,65-69,0.2059,0.01554,4.9,-21.1,17.7
+"All-regions, EXcluding China",Ischaemic Heart Disease,70-74,0.1816,0.01371,4.9,-21.1,17.7
+"All-regions, EXcluding China",Ischaemic Heart Disease,75-79,0.1574,0.01188,4.9,-21.1,17.7
+"All-regions, EXcluding China",Ischaemic Heart Disease,80+,0.1211,0.00914,4.9,-21.1,17.7
+"All-regions, EXcluding China",Strokes,25-29,0.3177,0.11625,6.2,14.5,14.4
+"All-regions, EXcluding China",Strokes,30-34,0.2985,0.1092,6.2,14.5,14.4
+"All-regions, EXcluding China",Strokes,35-39,0.2792,0.10216,6.2,14.5,14.4
+"All-regions, EXcluding China",Strokes,40-44,0.26,0.09511,6.2,14.5,14.4
+"All-regions, EXcluding China",Strokes,45-49,0.2407,0.08807,6.2,14.5,14.4
+"All-regions, EXcluding China",Strokes,50-54,0.2214,0.08102,6.2,14.5,14.4
+"All-regions, EXcluding China",Strokes,55-59,0.2011,0.07398,6.2,14.5,14.4
+"All-regions, EXcluding China",Strokes,60-64,0.1829,0.06693,6.2,14.5,14.4
+"All-regions, EXcluding China",Strokes,65-69,0.1637,0.05988,6.2,14.5,14.4
+"All-regions, EXcluding China",Strokes,70-74,0.1444,0.05284,6.2,14.5,14.4
+"All-regions, EXcluding China",Strokes,75-79,0.1252,0.0458,6.2,14.5,14.4
+"All-regions, EXcluding China",Strokes,80+,0.0963,0.03523,6.2,14.5,14.4
+"All-regions, EXcluding China",Chronic Obstructive Pulomonary Disease,25-29,0.2095,0.06725,7.2,2.0,14.7
+"All-regions, EXcluding China",Chronic Obstructive Pulomonary Disease,30-34,0.2095,0.06725,7.2,2.0,14.7
+"All-regions, EXcluding China",Chronic Obstructive Pulomonary Disease,35-39,0.2095,0.06725,7.2,2.0,14.7
+"All-regions, EXcluding China",Chronic Obstructive Pulomonary Disease,40-44,0.2095,0.06725,7.2,2.0,14.7
+"All-regions, EXcluding China",Chronic Obstructive Pulomonary Disease,45-49,0.2095,0.06725,7.2,2.0,14.7
+"All-regions, EXcluding China",Chronic Obstructive Pulomonary Disease,50-54,0.2095,0.06725,7.2,2.0,14.7
+"All-regions, EXcluding China",Chronic Obstructive Pulomonary Disease,55-59,0.2095,0.06725,7.2,2.0,14.7
+"All-regions, EXcluding China",Chronic Obstructive Pulomonary Disease,60-64,0.2095,0.06725,7.2,2.0,14.7
+"All-regions, EXcluding China",Chronic Obstructive Pulomonary Disease,65-69,0.2095,0.06725,7.2,2.0,14.7
+"All-regions, EXcluding China",Chronic Obstructive Pulomonary Disease,70-74,0.2095,0.06725,7.2,2.0,14.7
+"All-regions, EXcluding China",Chronic Obstructive Pulomonary Disease,75-79,0.2095,0.06725,7.2,2.0,14.7
+"All-regions, EXcluding China",Chronic Obstructive Pulomonary Disease,80+,0.2095,0.06725,7.2,2.0,14.7
+"All-regions, EXcluding China",Lung Cancer,25-29,0.2626,0.07849,6.7,11.0,16.5
+"All-regions, EXcluding China",Lung Cancer,30-34,0.2626,0.07849,6.7,11.0,16.5
+"All-regions, EXcluding China",Lung Cancer,35-39,0.2626,0.07849,6.7,11.0,16.5
+"All-regions, EXcluding China",Lung Cancer,40-44,0.2626,0.07849,6.7,11.0,16.5
+"All-regions, EXcluding China",Lung Cancer,45-49,0.2626,0.07849,6.7,11.0,16.5
+"All-regions, EXcluding China",Lung Cancer,50-54,0.2626,0.07849,6.7,11.0,16.5
+"All-regions, EXcluding China",Lung Cancer,55-59,0.2626,0.07849,6.7,11.0,16.5
+"All-regions, EXcluding China",Lung Cancer,60-64,0.2626,0.07849,6.7,11.0,16.5
+"All-regions, EXcluding China",Lung Cancer,65-69,0.2626,0.07849,6.7,11.0,16.5
+"All-regions, EXcluding China",Lung Cancer,70-74,0.2626,0.07849,6.7,11.0,16.5
+"All-regions, EXcluding China",Lung Cancer,75-79,0.2626,0.07849,6.7,11.0,16.5
+"All-regions, EXcluding China",Lung Cancer,80+,0.2626,0.07849,6.7,11.0,16.5
+"All-regions, EXcluding China",Lower Respiratory Infections,25-29,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, EXcluding China",Lower Respiratory Infections,30-34,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, EXcluding China",Lower Respiratory Infections,35-39,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, EXcluding China",Lower Respiratory Infections,40-44,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, EXcluding China",Lower Respiratory Infections,45-49,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, EXcluding China",Lower Respiratory Infections,50-54,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, EXcluding China",Lower Respiratory Infections,55-59,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, EXcluding China",Lower Respiratory Infections,60-64,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, EXcluding China",Lower Respiratory Infections,65-69,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, EXcluding China",Lower Respiratory Infections,70-74,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, EXcluding China",Lower Respiratory Infections,75-79,0.4468,0.11735,6.4,5.7,8.4
+"All-regions, EXcluding China",Lower Respiratory Infections,80+,0.4468,0.11735,6.4,5.7,8.4
